@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手（自动填充验证码）
-// @version      1.0.3
+// @version      1.0.4
 // @description  成都文理学院数字化实习实训平台刷课，在原基础上，添加了用户交互界面、自动识别填充验证码等功能。
 // @author       Fulling
 // @match        *://zxshixun.cdcas.com/user/node*
