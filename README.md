@@ -1,5 +1,13 @@
 # cdcasSK
 
+### 安装
+
+油猴安装指南：[首页 | Tampermonkey](https://www.tampermonkey.net/index.php?locale=zh)
+
+脚本油猴链接：[成都文理学院刷课助手（自动填充验证码）](https://greasyfork.org/zh-CN/scripts/512596)
+
+脚本Github链接：[iFulling/cdcasSK: 成都文理学院数字化实习实训平台刷课](https://github.com/iFulling/cdcasSK)
+
 ### 介绍
 
  [成都文理学院数字化实习实训平台](https://zxshixun.cdcas.com/)  & 仓辉教育科技 自动刷课
