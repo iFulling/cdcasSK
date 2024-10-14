@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手（自动填充验证码）
-// @version      1.0.2
+// @version      1.0.3
 // @description  成都文理学院数字化实习实训平台刷课，在原基础上，添加了用户交互界面、自动识别填充验证码等功能。
 // @author       Fulling
 // @match        *://zxshixun.cdcas.com/user/node*
@@ -199,6 +199,7 @@ const addContainer = () =>{
     containerTextElement.addClass('container-text')
     container.append(containerTextElement)
     addText("启动成功...")
+    addText("提示：如果开启了系统代理，要先关闭！")
 
     $("body").append(container)
 }
