@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手（自动填充验证码）
-// @version      1.0.6
+// @version      1.0.7
 // @description  成都文理学院数字化实习实训平台刷课，在原基础上，添加了用户交互界面、自动识别填充验证码等功能。
 // @author       Fulling
 // @match        *://zxshixun.cdcas.com/user/node*
@@ -11,17 +11,19 @@
 // ==/UserScript==
 
 /**
-/* @downloadURL https://update.greasyfork.org/scripts/512596/%E6%88%90%E9%83%BD%E6%96%87%E7%90%86%E5%AD%A6%E9%99%A2%E5%88%B7%E8%AF%BE%E5%8A%A9%E6%89%8B%EF%BC%88%E8%87%AA%E5%8A%A8%E5%A1%AB%E5%85%85%E9%AA%8C%E8%AF%81%E7%A0%81%EF%BC%89.user.js
-/* @updateURL https://update.greasyfork.org/scripts/512596/%E6%88%90%E9%83%BD%E6%96%87%E7%90%86%E5%AD%A6%E9%99%A2%E5%88%B7%E8%AF%BE%E5%8A%A9%E6%89%8B%EF%BC%88%E8%87%AA%E5%8A%A8%E5%A1%AB%E5%85%85%E9%AA%8C%E8%AF%81%E7%A0%81%EF%BC%89.meta.js
-*/
+ /* @downloadURL https://update.greasyfork.org/scripts/512596/%E6%88%90%E9%83%BD%E6%96%87%E7%90%86%E5%AD%A6%E9%99%A2%E5%88%B7%E8%AF%BE%E5%8A%A9%E6%89%8B%EF%BC%88%E8%87%AA%E5%8A%A8%E5%A1%AB%E5%85%85%E9%AA%8C%E8%AF%81%E7%A0%81%EF%BC%89.user.js
+ /* @updateURL https://update.greasyfork.org/scripts/512596/%E6%88%90%E9%83%BD%E6%96%87%E7%90%86%E5%AD%A6%E9%99%A2%E5%88%B7%E8%AF%BE%E5%8A%A9%E6%89%8B%EF%BC%88%E8%87%AA%E5%8A%A8%E5%A1%AB%E5%85%85%E9%AA%8C%E8%AF%81%E7%A0%81%EF%BC%89.meta.js
+ */
 
 let videoElement = null;
 let checkCaptchaTimer = null;
 let containerTextElement = null;
+let layuiLayerContent = null;
 let timerCnt = 0;
+let version = "1.0.7"
 
 // 下一个视频
-function playNext() {
+async function playNext() {
     let links = $('a[target="_self"]');
     let current = 0;
 
@@ -30,27 +32,24 @@ function playNext() {
             return current = index
         }
     });
-
+    clearInterval(checkCaptchaTimer);
     if (current === links.length - 1) {
         addText("最后一个已看完！")
     } else {
-        clearInterval(checkCaptchaTimer);
         addText("准备播放下一个视频...")
-        setTimeout(() => {
-            links[current + 1].click();
-        }, 3000);
+        await pause(3)
+        links[current + 1].click();
     }
 }
 
 // 输入验证码
-async function inputCaptcha(){
-    const captchaLayer = $('.layui-layer');
-
-    if (captchaLayer.length && captchaLayer.is(':visible')) {
-        addText("验证码弹窗出现，等待填写验证码...");
+async function inputCaptcha() {
+    if (layuiLayerContent.length && layuiLayerContent.is(':visible')) {
+        addText("验证码弹窗出现，准备填写验证码...");
+        await pause(2, 4)
 
         // 获取图片
-        let imgs = captchaLayer.find("img")
+        let imgs = layuiLayerContent.find("img")
         let img = imgs[0].style.opacity === '0' ? imgs[1] : imgs[0]
 
         // 图片转base64
@@ -62,14 +61,17 @@ async function inputCaptcha(){
         let code = canvas.toDataURL("image/png").split("base64,")[1];
 
         // 调用接口，识别验证码
-        await getCode(code).then((ans) => {
-            let inputs = captchaLayer.find("input")
-            let input = inputs[0].style.display === 'none' ? inputs[1] : inputs[0]
-            input.value = ans
-        });
+        let ans = await getCode(code)
 
-        const playButton = $('.layui-layer-btn0');  // 选择 "开始播放" 按钮
+        // 获取input，填入验证码
+        let inputs = layuiLayerContent.find("input")
+        let input = inputs[0].style.display === 'none' ? inputs[1] : inputs[0]
+        $(input).mousedown()
+        input.value = ans
 
+        // 点击开始播放按钮
+        await pause(2, 4)
+        const playButton = $('.layui-layer-btn0');
         if (playButton.length) {
             playButton.click();
             checkCaptchaTimer = setInterval(playVideo, 1000);
@@ -82,8 +84,8 @@ async function inputCaptcha(){
 }
 
 // 使用sw1128的接口，油猴链接：https://greasyfork.org/zh-CN/scripts/459260
-function getCode(code){
-    return new Promise((resolve, reject) =>{
+function getCode(code) {
+    return new Promise((resolve, reject) => {
         const datas = {
             "ImageBase64": String(code),
         }
@@ -95,21 +97,19 @@ function getCode(code){
                 "Content-Type": "application/json",
             },
             responseType: "json",
-            onload: function(response) {
+            onload: function (response) {
                 if (response.status == 200) {
                     if (response.responseText.indexOf("触发限流策略") != -1)
                         addText(response.response["msg"]);
-                    try{
+                    try {
                         var result = response.response["result"];
                         addText("识别结果：" + result);
                         return resolve(result);
-                    }
-                    catch(e){
+                    } catch (e) {
                         if (response.responseText.indexOf("接口请求频率过高") != -1)
                             addText(response.responseText);
                     }
-                }
-                else {
+                } else {
                     addText("识别失败，请勿开启代理。");
                 }
             }
@@ -118,7 +118,7 @@ function getCode(code){
 }
 
 // 播放视频，同时检测验证码
-function playVideo(){
+function playVideo() {
     timerCnt++;
     if (timerCnt % 5 === 0) {
         addText("等待加载，已加载：" + timerCnt + "秒")
@@ -132,53 +132,53 @@ function playVideo(){
         return getVideoElement();
     }
     // 验证码弹窗
-    const verifyTags = $('.layui-layer');
-    if (verifyTags.length > 0) {
+    layuiLayerContent = $('.layui-layer-content');
+    if (layuiLayerContent.length > 0) {
         inputCaptcha()
         clearInterval(checkCaptchaTimer);
         return;
     }
 
-    if (videoElement) {
-        if (videoElement.paused) {
-            videoElement.play();
-            if (videoElement.readyState === 4 && !containerTextElement.text().includes("视频加载完成")) {
-                addText("视频加载完成，准备播放");
-            }
-        } else {
-            timerCnt = 0; // 如果视频正在播放，重置计时器
+    // 检测视频是否加载成功且暂停
+    if (!videoElement) return;
+    if (videoElement.paused) {
+        videoElement.play();
+        if (videoElement.readyState === 4) {
+            const message = containerTextElement.text().includes("视频加载完成")
+                ? "请将浏览器置于前台运行。" : "视频加载完成，准备播放";
+            addText(message);
         }
+    } else {
+        timerCnt = 0;
     }
 }
 
 // 获取视频元素
-const getVideoElement = ()=>{
+const getVideoElement = () => {
     videoElement = document.querySelector("video");
     videoElement.muted = true;
     videoElement.playbackRate = 1.0;
     videoElement.volume = 0;
     videoElement.onended = function () {
         playNext();
-        setTimeout(() => {}, 2000);
     };
 }
 
 // 添加交互显示
-const addContainer = () =>{
+const addContainer = () => {
     const container = $('<container></container>')
     container.addClass('popup');
 
     const header = $("<div></div>")
     header.addClass('container-header')
-    header.text("成都文理学院刷课助手 1.0.6")
+    header.text("成都文理学院刷课助手 " + version)
     container.append(header)
 
     // 添加移动事件
-    header.on("mousedown", function(event) {
+    header.on("mousedown", function (event) {
         // 获取鼠标相对盒子的偏移量
         let shiftX = event.clientX - header.offset().left;
         let shiftY = event.clientY - header.offset().top;
-
         // 当鼠标移动时
         function onMouseMove(event) {
             container.css({
@@ -191,7 +191,6 @@ const addContainer = () =>{
             $(document).off('mousemove', onMouseMove);
             $(document).off('mouseup', onMouseUp);
         }
-
         $(document).on('mousemove', onMouseMove);
         $(document).on('mouseup', onMouseUp);
     })
@@ -206,8 +205,6 @@ const addContainer = () =>{
     addText("提示1：如果开启了系统代理，要先关闭！")
     addText("提示2：因为要获取验证码，在弹出请求跨域资源的页面时，选择 <b>总是允许</b>。")
     addText("提示3：请将浏览器置于前台运行，否则可能上传不了学时！")
-
-
 
     $("body").append(container)
 }
@@ -254,6 +251,21 @@ const addText = text => {
     containerTextElement.append(text + "<br>")
     containerTextElement.scrollTop(containerTextElement[0].scrollHeight)
 }
+
+// 暂停函数
+function pause(start, end = undefined) {
+    let delay = start;
+    if (end) {
+        delay = Math.floor(Math.random() * end) + start;
+        addText(`等待 ${delay} 秒后继续...`);
+    }
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve();
+        }, delay * 1000); // 将秒转换为毫秒
+    });
+}
+
 
 // 初始化程序
 const init = () => {
