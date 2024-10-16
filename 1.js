@@ -118,7 +118,7 @@ function getCode(code) {
 }
 
 // 播放视频，同时检测验证码
-function playVideo() {
+async function playVideo() {
     timerCnt++;
     if (timerCnt % 5 === 0) {
         addText("等待加载，已加载：" + timerCnt + "秒")
@@ -134,8 +134,8 @@ function playVideo() {
     // 验证码弹窗
     layuiLayerContent = $('.layui-layer-content');
     if (layuiLayerContent.length > 0) {
-        inputCaptcha()
         clearInterval(checkCaptchaTimer);
+        await inputCaptcha()
         return;
     }
 
@@ -159,8 +159,8 @@ const getVideoElement = () => {
     videoElement.muted = true;
     videoElement.playbackRate = 1.0;
     videoElement.volume = 0;
-    videoElement.onended = function () {
-        playNext();
+    videoElement.onended = async function () {
+        await playNext();
     };
 }
 
@@ -256,7 +256,7 @@ const addText = text => {
 function pause(start, end = undefined) {
     let delay = start;
     if (end) {
-        delay = Math.floor(Math.random() * end) + start;
+        delay = Math.floor(Math.random() * (end - start)) + start;
         addText(`等待 ${delay} 秒后继续...`);
     }
     return new Promise(resolve => {
@@ -268,10 +268,11 @@ function pause(start, end = undefined) {
 
 
 // 初始化程序
-const init = () => {
+const init = async () => {
     addContainer()
     addStyle()
     addText("初始化完成...")
+    await pause(5, 10)
 }
 
 
@@ -279,8 +280,8 @@ const init = () => {
 (function () {
     'use strict';
 
-    $(document).ready(function () {
-        init()
+    $(document).ready(async function () {
+        await init()
         checkCaptchaTimer = setInterval(playVideo, 1000);
     });
 })();
