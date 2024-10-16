@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手（自动填充验证码）
-// @version      1.0.5
+// @version      1.0.6
 // @description  成都文理学院数字化实习实训平台刷课，在原基础上，添加了用户交互界面、自动识别填充验证码等功能。
 // @author       Fulling
 // @match        *://zxshixun.cdcas.com/user/node*
@@ -10,6 +10,10 @@
 // @namespace  	 https://github.com/iFulling/cdcasSK
 // ==/UserScript==
 
+/**
+/* @downloadURL https://update.greasyfork.org/scripts/512596/%E6%88%90%E9%83%BD%E6%96%87%E7%90%86%E5%AD%A6%E9%99%A2%E5%88%B7%E8%AF%BE%E5%8A%A9%E6%89%8B%EF%BC%88%E8%87%AA%E5%8A%A8%E5%A1%AB%E5%85%85%E9%AA%8C%E8%AF%81%E7%A0%81%EF%BC%89.user.js
+/* @updateURL https://update.greasyfork.org/scripts/512596/%E6%88%90%E9%83%BD%E6%96%87%E7%90%86%E5%AD%A6%E9%99%A2%E5%88%B7%E8%AF%BE%E5%8A%A9%E6%89%8B%EF%BC%88%E8%87%AA%E5%8A%A8%E5%A1%AB%E5%85%85%E9%AA%8C%E8%AF%81%E7%A0%81%EF%BC%89.meta.js
+*/
 
 let videoElement = null;
 let checkCaptchaTimer = null;
@@ -40,7 +44,7 @@ function playNext() {
 
 // 输入验证码
 async function inputCaptcha(){
-    const captchaLayer = $('#layui-layer1');
+    const captchaLayer = $('.layui-layer');
 
     if (captchaLayer.length && captchaLayer.is(':visible')) {
         addText("验证码弹窗出现，等待填写验证码...");
@@ -166,7 +170,7 @@ const addContainer = () =>{
 
     const header = $("<div></div>")
     header.addClass('container-header')
-    header.text("成都文理学院刷课助手 1.0.5")
+    header.text("成都文理学院刷课助手 1.0.6")
     container.append(header)
 
     // 添加移动事件
@@ -199,7 +203,11 @@ const addContainer = () =>{
     containerTextElement.addClass('container-text')
     container.append(containerTextElement)
     addText("启动成功...")
-    addText("提示：如果开启了系统代理，要先关闭！")
+    addText("提示1：如果开启了系统代理，要先关闭！")
+    addText("提示2：因为要获取验证码，在弹出请求跨域资源的页面时，选择 <b>总是允许</b>。")
+    addText("提示3：请将浏览器置于前台运行，否则可能上传不了学时！")
+
+
 
     $("body").append(container)
 }
