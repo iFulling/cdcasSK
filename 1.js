@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手（自动填充验证码）
-// @version      1.0.8
+// @version      1.0.9
 // @description  成都文理学院数字化实习实训平台刷课，在原基础上，添加了用户交互界面、自动识别填充验证码等功能。
 // @author       Fulling
 // @match        *://zxshixun.cdcas.com/user/node*
@@ -8,6 +8,8 @@
 // @grant        GM_xmlhttpRequest
 // @license    	 MIT
 // @namespace  	 https://github.com/iFulling/cdcasSK
+// @connect      captcha.zwhyzzz.top
+// @connect      captcha.zwhyzzz.top:8092
 // ==/UserScript==
 
 /**
@@ -19,19 +21,22 @@ let videoElement = null;
 let checkCaptchaTimer = null;
 let containerTextElement = null;
 let layuiLayerContent = null;
+let links = null;
+let current = 0;
 let timerCnt = 0;
-let version = "1.0.8"
+let version = "1.0.9"
 
-// 下一个视频
-async function playNext() {
-    let links = $('a[target="_self"]');
-    let current = 0;
-
+// 获取当前课程
+function getCurrent() {
+    links = $('a[target="_self"]');
     links.each((index, item) => {
         if ($(item).hasClass("on")) {
             return current = index
         }
     });
+}
+// 下一个视频
+async function playNext() {
     clearInterval(checkCaptchaTimer);
     if (current === links.length - 1) {
         addText("最后一个已看完！")
@@ -46,7 +51,7 @@ async function playNext() {
 async function inputCaptcha() {
     if (layuiLayerContent.length && layuiLayerContent.is(':visible')) {
         addText("验证码弹窗出现，准备填写验证码...");
-        await pause(2, 4)
+        await pause(2, 5)
 
         // 获取图片
         let imgs = layuiLayerContent.find("img")
@@ -70,7 +75,7 @@ async function inputCaptcha() {
         input.value = ans
 
         // 点击开始播放按钮
-        await pause(2, 4)
+        await pause(2, 5)
         const playButton = $('.layui-layer-btn0');
         if (playButton.length) {
             playButton.click();
@@ -129,7 +134,13 @@ async function playVideo() {
         return
     }
     if (!videoElement) {
-        return getVideoElement();
+        if (links[current].title && links[current].title === "考试") {
+            addText("课程已看完，自动停止！")
+            clearInterval(checkCaptchaTimer)
+        }else {
+            getVideoElement();
+        }
+        return
     }
     // 验证码弹窗
     layuiLayerContent = $('.layui-layer-content');
@@ -140,12 +151,12 @@ async function playVideo() {
     }
 
     // 检测视频是否加载成功且暂停
-    if (!videoElement) return;
+    // if (!videoElement) return;
     if (videoElement.paused) {
         videoElement.play();
         if (videoElement.readyState === 4) {
             const message = containerTextElement.text().includes("视频加载完成")
-                ? "请将浏览器置于前台运行。" : "视频加载完成，准备播放";
+                ? "请将浏览器置于前台运行。（若学时会增加可忽略）" : "视频加载完成，准备播放";
             addText(message);
         }
     } else {
@@ -201,11 +212,10 @@ const addContainer = () => {
     containerTextElement = $("<div></div>")
     containerTextElement.addClass('container-text')
     container.append(containerTextElement)
+    addText("<h4>提示1</h4>：如果开启了系统代理，要先关闭！")
+    addText("<h4>提示2</h4>：因为要获取验证码，如果弹出请求跨域资源的页面，选择 <b>总是允许</b>。")
+    addText("<h4>提示3</h4>：因不同浏览器的优化策略问题，如果发现<b>学时没变</b>，看视频时请<b>将浏览器置于前台运行</b>。<br>")
     addText("启动成功...")
-    addText("提示1：如果开启了系统代理，要先关闭！")
-    addText("提示2：因为要获取验证码，在弹出请求跨域资源的页面时，选择 <b>总是允许</b>。")
-    addText("提示3：请将浏览器置于前台运行，否则可能上传不了学时！")
-
     $("body").append(container)
 }
 
@@ -219,6 +229,7 @@ const addStyle = () => {
     position: fixed;
     top: 50px;
     left: 150px;
+    width: 520px;
     font: 14px Menlo, Monaco, Consolas, "Courier New", monospace;
     z-index: 9999999999999999999999;
     background-color: #fff;
@@ -226,17 +237,22 @@ const addStyle = () => {
     padding: 10px;
     border-radius: 5px;
 }
+.popup h4{
+    display: inline-block;
+}
+.popup b{
+    color: red;
+}
 
 .container-header {
     height: 30px;
-    width: 300px;
     cursor: move;
     line-height: 30px;
 }
 
 .container-text {
     margin-top: 10px;
-    max-height: 150px;
+    max-height: 200px;
     min-height: 30px;
     overflow: auto;
 }
@@ -271,6 +287,7 @@ function pause(start, end = undefined) {
 const init = async () => {
     addContainer()
     addStyle()
+    getCurrent()
     addText("初始化完成...")
     await pause(5, 10)
 }
