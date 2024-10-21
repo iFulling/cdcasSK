@@ -10,7 +10,7 @@
 
 ### 介绍
 
- [成都文理学院数字化实习实训平台](https://zxshixun.cdcas.com/)  & 仓辉教育科技 自动刷课
+ [成都文理学院数字化实习实训平台](https://zxshixun.cdcas.com/)  &  [成都文理学院公益课程](https://gyxy.cdcas.com/)  &   [成都文理学院在线学堂](https://mooc.cdcas.com/)   自动刷课
 
 **启动时关闭系统代理，否则视频刷新不出来。**
 
