@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手|自动刷课|考试自动答题
-// @version      1.1.1
+// @version      2.0.1
 // @description  成都文理学院刷课助手，🚀目前已支持平台：【数字化实习实训平台、公益课程、英华学堂】。😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。
 // @author       iFulling
 // @match        *://zxshixun.cdcas.com/*
@@ -28,7 +28,7 @@ let layuiLayerContent = null;
 let links = null;
 let current = 0;
 let timerCnt = 0;
-let version = "1.1.1"
+let version = "2.0.1"
 let token = "";
 let auth = "";
 let examCurrent = 0;
@@ -264,7 +264,8 @@ const showExamOption = () => {
     })
     token = cookieObj["_db_token"] || ""
     auth = cookieObj["_db_auth"] || ""
-
+    let date = new Date();
+    date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
 
     examTextElement.append("搜题配置：点击链接 <a target='_blank' href='https://kdocs.cn/l/clJtV1RU8GDe'>获取搜题token和auth</a><br>")
     let tokenDiv = $("<div></div>")
@@ -272,7 +273,7 @@ const showExamOption = () => {
     let tokenInput = $("<input type='text' value='"+token+"'/>")
     tokenInput.on("keyup", e=>{
         token = e.target.value
-        document.cookie = "_db_token="+token+"; domain=.cdcas.com; path=/";
+        document.cookie = "_db_token="+token+"; domain=.cdcas.com; expires="+date.toUTCString()+"; path=/";
     })
     tokenDiv.append(tokenInput)
 
@@ -281,7 +282,7 @@ const showExamOption = () => {
     let authInput = $("<input type='text' value='"+auth+"'/>")
     authInput.on("keyup", e=>{
         auth = e.target.value
-        document.cookie = "_db_auth="+auth+"; domain=.cdcas.com; path=/";
+        document.cookie = "_db_auth="+auth+"; domain=.cdcas.com; expires="+date.toUTCString()+"; path=/";
     })
     authDiv.append(authInput)
 
