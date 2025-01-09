@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手|自动刷课|考试自动答题
-// @version      2.0.1
-// @description  成都文理学院刷课助手，🚀目前已支持平台：【数字化实习实训平台、公益课程、英华学堂】。😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。
+// @version      2.0.2
+// @description  成都文理学院刷课助手，🚀目前已支持平台：【数字化实习实训平台、公益课程、英华学堂】。😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。🐧QQ交流群：878643471
 // @author       iFulling
 // @match        *://zxshixun.cdcas.com/*
 // @match        *://gyxy.cdcas.com/*
@@ -28,7 +28,7 @@ let layuiLayerContent = null;
 let links = null;
 let current = 0;
 let timerCnt = 0;
-let version = "2.0.1"
+let version = "2.0.2"
 let token = "";
 let auth = "";
 let examCurrent = 0;
@@ -187,6 +187,7 @@ const getVideoElement = () => {
 
 // 添加交互显示
 const addContainer = () => {
+    const mini = $("<div class='mini'>刷课<br>助手</div>")
     const container = $('<container></container>')
     container.addClass('popup');
 
@@ -198,8 +199,10 @@ const addContainer = () => {
     const btnGroup = $("<div></div>")
     const classTab = $("<button class='classTabBtn'>刷课配置</button>")
     const examTab = $("<button class='examTabBtn'>搜题配置</button>")
+    const minimize = $("<button class='examTabBtn'>缩小窗口</button>")
     btnGroup.append(classTab)
     btnGroup.append(examTab)
+    btnGroup.append(minimize)
     header.append(btnGroup)
 
     classTab.on("click", () => {
@@ -210,6 +213,17 @@ const addContainer = () => {
         containerTextElement.hide()
         examTextElement.show()
     })
+    minimize.on("click", ()=>{
+        container.hide()
+        mini.css("display", "flex")
+    })
+    let moveFlag = false;
+    mini.on("mouseup", ()=>{
+        if (moveFlag) return;
+        container.show()
+        mini.hide()
+    })
+
 
     // 添加移动事件
     header.on("mousedown", function (event) {
@@ -231,10 +245,32 @@ const addContainer = () => {
         $(document).on('mousemove', onMouseMove);
         $(document).on('mouseup', onMouseUp);
     })
+    mini.on("mousedown", function (event) {
+        // 获取鼠标相对盒子的偏移量
+        let shiftX = event.clientX - mini.offset().left;
+        let shiftY = event.clientY - mini.offset().top;
+        // 当鼠标移动时
+        function onMouseMove(event) {
+            moveFlag = true;
+            mini.css({
+                left: event.pageX - shiftX + 'px',
+                top: event.pageY - shiftY + 'px'
+            })
+        }
+        // 鼠标提起来
+        function onMouseUp() {
+            moveFlag = false;
+            $(document).off('mousemove', onMouseMove);
+            $(document).off('mouseup', onMouseUp);
+        }
+        $(document).on('mousemove', onMouseMove);
+        $(document).on('mouseup', onMouseUp);
+    })
 
     const hr = $("<hr>")
     container.append(hr)
     $("body").append(container)
+    $("body").append(mini)
 }
 
 const showClassOption = () => {
@@ -243,7 +279,7 @@ const showClassOption = () => {
     $(".popup").append(containerTextElement)
     addText("<h4>提示1</h4>：如果开启了系统代理，要先关闭！")
     addText("<h4>提示2</h4>：本脚本仅支持PC端，如果不起作用，点油猴图标看是否有提示 \"<b>Please enable developer mode...</b>\"，若有，点击查看 <a target='_blank' href='https://www.baidu.com/s?wd=%E6%B2%B9%E7%8C%B4%20Please%20enable%20developer'>油猴插件不能使用</a>")
-    addText("<h4>提示3</h4>：因为要获取验证码，如果弹出请求跨域资源的页面，选择 <b>总是允许</b>。")
+    addText("<h4>提示3</h4>：安装过老版本的需要把老版本删除或者禁用。")
     addText("<h4>提示4</h4>：因不同浏览器的优化策略问题，如果发现<b>学时没变</b>，看视频时请<b>将浏览器置于前台运行</b>。<br>")
     addText("启动成功...")
 }
@@ -253,7 +289,8 @@ const showExamOption = () => {
     $(".popup").append(examTextElement)
     examTextElement.append("<h4>提示1</h4>：如果开启了系统代理，要先关闭！<br>")
     examTextElement.append("<h4>提示2</h4>：本脚本仅支持PC端，如果不起作用，点油猴图标看是否有提示 \"<b>Please enable developer mode...</b>\"，若有，点击查看 <a target='_blank' href='https://www.baidu.com/s?wd=%E6%B2%B9%E7%8C%B4%20Please%20enable%20developer'>油猴插件不能使用</a><br>")
-    examTextElement.append("<h4>提示3</h4>：对接的是抖音豆包，因为是AI，<b>所以不能保证完全正确，分数高低与作者无关</b>，如果有所担心可在搜完后再自己手动搜一遍<br>")
+    examTextElement.append("<h4>提示3</h4>：安装过老版本的需要把老版本删除或者禁用。<br>")
+    examTextElement.append("<h4>提示4</h4>：对接的是抖音豆包，因为是AI，<b>所以不能保证完全正确，分数高低与作者无关</b>，如果有所担心可在搜完后再自己手动搜一遍<br>")
     examTextElement.append("启动成功...<br><br>")
 
     let cookies = document.cookie.split("; ");
@@ -267,9 +304,9 @@ const showExamOption = () => {
     let date = new Date();
     date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
 
-    examTextElement.append("搜题配置：点击链接 <a target='_blank' href='https://kdocs.cn/l/clJtV1RU8GDe'>获取搜题token和auth</a><br>")
+    examTextElement.append("搜题配置：点击链接 👉 <a target='_blank' href='https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666'>视频教程</a> | <a target='_blank' href='https://kdocs.cn/l/clJtV1RU8GDe'>获取搜题接入点ID和API Key</a><br>")
     let tokenDiv = $("<div></div>")
-    tokenDiv.append("<span>Token：</span>")
+    tokenDiv.append("<span>接入点ID：</span>")
     let tokenInput = $("<input type='text' value='"+token+"'/>")
     tokenInput.on("keyup", e=>{
         token = e.target.value
@@ -278,7 +315,7 @@ const showExamOption = () => {
     tokenDiv.append(tokenInput)
 
     let authDiv = $("<div></div>")
-    authDiv.append("<span>Auth ：</span>")
+    authDiv.append("<span>API Key： </span>")
     let authInput = $("<input type='text' value='"+auth+"'/>")
     authInput.on("keyup", e=>{
         auth = e.target.value
@@ -291,6 +328,8 @@ const showExamOption = () => {
 
     let startBtn = $("<button>开始搜题</button>")
     let stopBtn = $("<button>停止搜题</button>")
+    let saveBtn = $("<button>保存配置</button>")
+    examTextElement.append(saveBtn)
     examTextElement.append(startBtn)
     examTextElement.append(stopBtn)
     examCurrent = parseInt($(".topic-head.on").text()) - 1
@@ -302,6 +341,11 @@ const showExamOption = () => {
     if ($(".courseexam-list").find(".time").text().includes("已交卷")) {
         setExamStatus("已交卷,不可继续答题");
     }
+    saveBtn.on("click", ()=>{
+        document.cookie = "_db_token="+tokenInput[0].value+"; domain=.cdcas.com; expires="+date.toUTCString()+"; path=/";
+        document.cookie = "_db_auth="+authInput[0].value+"; domain=.cdcas.com; expires="+date.toUTCString()+"; path=/";
+        setExamStatus("保存成功！");
+    })
     startBtn.on("click",async ()=>{
         if (startFlag) return;
         startFlag = true;
@@ -317,7 +361,6 @@ const showExamOption = () => {
             let type = parseInt(tab.find(".courseexamcon-main").data("type"))
             if ([1, 2, 3].includes(type)){
                 let question = tab.find(".courseexamcon-main")[0].innerText.replaceAll("\n.\n", ".")
-                console.log(question)
                 let answer = await getAnswer(question)
                 answer = answer.match(/[a-zA-Z]+/)[0];
                 setExamStatus("第 "+ (examCurrent + 1) +" 题答案：" + answer)
@@ -362,6 +405,22 @@ const addStyle = () => {
     style.prop('type', 'text/css')
     style.html(
         `
+.mini {
+    position: fixed;
+    top: 50px;
+    left: 150px;
+    width: 50px;
+    height: 50px;
+    display: none;
+    z-index: 99999999999999999;
+    background: #bb241d;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 8px 2px;
+}
 .popup {
     position: fixed;
     top: 50px;
@@ -430,7 +489,7 @@ const addStyle = () => {
     color: white;
     border-radius: 3px;
     cursor: pointer;
-    margin: 10px 20px 10px 0;
+    margin: 10px 10px 10px 0;
     border: none;
 }
 .container-exam button:hover{
@@ -483,17 +542,16 @@ const getAnswer = (question) => {
             responseType: "json",
             onload: function (response) {
                 if (response.status == 401) {
-                    addText("作者关闭了搜题接口，开启时间等待更新...");
+                    setExamStatus("作者关闭了搜题接口，开启时间等待更新...");
                 } else if (response.status == 200) {
                     try {
                         var answer = response.response["choices"][0].message.content;
-                        addText("搜题结果：" + answer);
                         return resolve(answer);
                     } catch (e) {
-                        addText("异常捕获：接口错误！");
+                        setExamStatus("异常捕获：接口错误！");
                     }
                 } else {
-                    addText("接口错误！");
+                    setExamStatus("接口错误！");
                 }
             }
         });
