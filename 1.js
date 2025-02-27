@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手|自动刷课|考试自动答题
-// @version      2.0.2
+// @version      2.0.3
 // @description  成都文理学院刷课助手，🚀目前已支持平台：【数字化实习实训平台、公益课程、英华学堂】。😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。🐧QQ交流群：878643471
 // @author       iFulling
 // @match        *://zxshixun.cdcas.com/*
@@ -28,7 +28,7 @@ let layuiLayerContent = null;
 let links = null;
 let current = 0;
 let timerCnt = 0;
-let version = "2.0.2"
+let version = "2.0.3"
 let token = "";
 let auth = "";
 let examCurrent = 0;
@@ -143,9 +143,13 @@ async function playVideo() {
         return
     }
     if (!videoElement) {
-        if (links[current].title && links[current].title.includes("考试")) {
+        if (links[current].title && current === links.length - 1) {
             addText("课程已看完，自动停止！")
             clearInterval(checkCaptchaTimer)
+        }else if (links[current].title && /考试|章节作业|自学教材/.test(links[current].title)){
+            addText("没有视频，准备跳过...")
+            clearInterval(checkCaptchaTimer)
+            await playNext();
         }else {
             getVideoElement();
         }
