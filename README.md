@@ -26,12 +26,13 @@
 4. 因不同浏览器的优化策略问题，如果发现**学时没变**，看视频时请**将浏览器置于前台运行**。
 5. 安装过老版本的需要把老版本删除或者禁用。
 
-![1](https://img.picui.cn/free/2024/10/16/670f1ac0b8ffd.png)
+![1](https://s21.ax1x.com/2025/02/27/pE3oC1U.png)
 
-![1](https://img.picui.cn/free/2024/10/17/671101ad07920.png)
+![1](https://s21.ax1x.com/2025/02/27/pE3oPcF.png)
 
 ### 📝搜题
 
 1. 对接的是抖音豆包，因为是AI，**所以不能保证完全正确，分数高低与作者无关**，如果有所担心可在搜完后再自己手动搜一遍
+2. 搜题配置：点击链接 👉 [视频教程](https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666) | [获取搜题接入点ID和API Key](https://kdocs.cn/l/clJtV1RU8GDe)
 
-![](https://img.picui.cn/free/2025/01/09/677f86171e18f.png)
+![](https://s21.ax1x.com/2025/02/27/pE3o9pT.png)
