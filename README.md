@@ -10,7 +10,7 @@
 
 ### 📖介绍
 
-【成都文理学院刷课助手】仅在成都文理学院做了测试。 本脚本改编自 [YoungLee-coder/MoocTool-CDCAS](https://github.com/YoungLee-coder/MoocTool-CDCAS) 刷课脚本。自动识别填充网页验证码使用 [sw1128/Web_Captcha](https://github.com/sw1128/Web_Captcha) 的接口。在原基础上，添加了✅用户交互界面、✅自动识别填充验证码、✅AI搜题等功能。
+【成都文理学院刷课助手】仅在成都文理学院做了测试。 本脚本改编自 [YoungLee-coder/MoocTool-CDCAS](https://github.com/YoungLee-coder/MoocTool-CDCAS) 刷课脚本。在原基础上，添加了✅用户交互界面、✅自动识别填充验证码、✅AI搜题等功能。
 
 🚀目前已支持平台：【 [成都文理学院数字化实习实训平台](https://zxshixun.cdcas.com/)、[成都文理学院公益课程](https://gyxy.cdcas.com/)、[成都文理学院在线学堂](https://mooc.cdcas.com/) 】。
 
@@ -21,7 +21,7 @@
 ### 💻刷课
 
 1. **启动时关闭系统代理，否则视频刷新不出来。**
-2. 本脚本仅支持PC端，如果不起作用，点油猴图标看是否有提示 "**Please enable developer mode...**"，若有，点击查看 [油猴插件不能使用](https://www.baidu.com/s?wd=油猴 Please enable developer)
+2. 本脚本仅支持PC端，如果不起作用，点油猴图标看是否有提示 "**Please enable developer mode...**"，若有，点击查看 [油猴插件不能使用](https://www.baidu.com/s?wd=油猴PleaseEnableDeveloper)
 3. 因为要获取验证码，如果弹出请求跨域资源的页面，选择 **总是允许**。
 4. 因不同浏览器的优化策略问题，如果发现**学时没变**，看视频时请**将浏览器置于前台运行**。
 5. 安装过老版本的需要把老版本删除或者禁用。

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手|自动刷课|考试自动答题
-// @version      2.0.3
+// @version      2.0.4
 // @description  成都文理学院刷课助手，🚀目前已支持平台：【数字化实习实训平台、公益课程、英华学堂】。😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。🐧QQ交流群：878643471
 // @author       iFulling
 // @match        *://zxshixun.cdcas.com/*
@@ -10,8 +10,8 @@
 // @grant        GM_xmlhttpRequest
 // @license    	 MIT
 // @namespace  	 https://github.com/iFulling/cdcasSK
-// @connect      captcha.zwhyzzz.top
-// @connect      captcha.zwhyzzz.top:8092
+// @connect      119.8.102.43
+// @connect      119.8.102.43:5000
 // @connect      ark.cn-beijing.volces.com
 // ==/UserScript==
 
@@ -28,7 +28,7 @@ let layuiLayerContent = null;
 let links = null;
 let current = 0;
 let timerCnt = 0;
-let version = "2.0.3"
+let version = "2.0.4"
 let token = "";
 let auth = "";
 let examCurrent = 0;
@@ -97,7 +97,6 @@ async function inputCaptcha() {
     }
 }
 
-// 使用sw1128的接口，油猴链接：https://greasyfork.org/zh-CN/scripts/459260
 function getCode(code) {
     return new Promise((resolve, reject) => {
         const datas = {
@@ -105,7 +104,7 @@ function getCode(code) {
         }
         GM_xmlhttpRequest({
             method: "POST",
-            url: "http://captcha.zwhyzzz.top:8092/identify_GeneralCAPTCHA",
+            url: "http://119.8.102.43:5000/get_captcha",
             data: JSON.stringify(datas),
             headers: {
                 "Content-Type": "application/json",
@@ -113,18 +112,13 @@ function getCode(code) {
             responseType: "json",
             onload: function (response) {
                 if (response.status == 200) {
-                    if (response.responseText.indexOf("触发限流策略") != -1)
-                        addText(response.response["msg"]);
-                    try {
-                        var result = response.response["result"];
-                        addText("识别结果：" + result);
-                        return resolve(result);
-                    } catch (e) {
-                        if (response.responseText.indexOf("接口请求频率过高") != -1)
-                            addText(response.responseText);
-                    }
+                    let result = response.response["message"];
+                    addText("识别结果：" + result);
+                    return resolve(result);
                 } else {
-                    addText("识别失败，请勿开启代理。");
+                    let result = JSON.parse(response.response)["message"];
+                    addText(result);
+                    addText("识别失败，请勿开启代理，或联系管理员。🐧群：878643471");
                 }
             }
         });
@@ -429,7 +423,7 @@ const addStyle = () => {
     position: fixed;
     top: 50px;
     left: 150px;
-    width: 520px;
+    width: 540px;
     font: 14px Menlo, Monaco, Consolas, "Courier New", monospace;
     z-index: 9999999999999999999999;
     background-color: #fff;
