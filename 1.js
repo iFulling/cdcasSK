@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手|自动刷课|考试自动答题
-// @version      2.0.5
+// @version      2.0.6
 // @description  成都文理学院刷课助手，🚀目前已支持平台：【数字化实习实训平台、公益课程、在线学堂、英华学堂】。😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。🐧QQ交流群：878643471
 // @author       iFulling
 // @match        *://zxshixun.cdcas.com/*
@@ -29,7 +29,7 @@ let layuiLayerContent = null;
 let links = null;
 let current = 0;
 let timerCnt = 0;
-let version = "2.0.5"
+let version = "2.0.6"
 let token = "";
 let auth = "";
 let examCurrent = 0;
@@ -570,7 +570,8 @@ const init = async () => {
 (function () {
     'use strict';
 
-    $(document).ready(async function () {
+    window.addEventListener("load", async function (){
+    // $(document).ready(async function () {
         await init()
         if (window.location.href.includes("/node")) {
             $(".classTabBtn").click()
