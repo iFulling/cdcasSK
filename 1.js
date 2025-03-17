@@ -98,6 +98,20 @@ async function inputCaptcha() {
     }
 }
 
+async function test(){
+    let img = $("#codeImg")[0]
+    // 图片转base64
+    let canvas = document.createElement("canvas");
+    let ctx = canvas.getContext("2d");
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0, img.width, img.height);
+    let code = canvas.toDataURL("image/png").split("base64,")[1];
+    // 调用接口，识别验证码
+    let ans = await getCode(code)
+    console.log(ans)
+}
+
 function getCode(code) {
     return new Promise((resolve, reject) => {
         const datas = {
@@ -111,6 +125,12 @@ function getCode(code) {
                 "Content-Type": "application/json",
             },
             responseType: "json",
+            timeout: 10000,
+            ontimeout: async function (e) {
+                addText("验证码获取超时，刷新页面...");
+                await pause(3)
+                location.reload();  // 刷新当前页面
+            },
             onload: function (response) {
                 if (response.status == 200) {
                     let result = response.response["message"];
@@ -121,7 +141,10 @@ function getCode(code) {
                     addText(result);
                     addText("识别失败，请勿开启代理，或联系管理员。🐧群：878643471");
                 }
-            }
+            },
+            onerror: function (error) {
+                addText(`${error.statusText} ${error.status} - 出错了`)
+            },
         });
     });
 }
@@ -571,8 +594,8 @@ const init = async () => {
     'use strict';
 
     window.addEventListener("load", async function (){
-    // $(document).ready(async function () {
         await init()
+        // await test()
         if (window.location.href.includes("/node")) {
             $(".classTabBtn").click()
             getCurrent()
