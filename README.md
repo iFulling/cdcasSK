@@ -12,7 +12,7 @@
 
 【成都文理学院刷课助手】虽然其他学校也能用，但仅在成都文理学院做了测试。 本脚本改编自 [YoungLee-coder/MoocTool-CDCAS](https://github.com/YoungLee-coder/MoocTool-CDCAS) 刷课脚本。在原基础上，添加了✅用户交互界面、✅自动识别填充验证码、✅AI搜题等功能。
 
-🚀目前已支持平台：【 [成都文理学院数字化实习实训平台](https://cdcas.rurenkj.com/)、[成都文理学院公益课程](https://gyxy.cdcas.com/)、[成都文理学院在线学堂](https://mooc.cdcas.com/)、[成都文理学院英华学堂](https://zxshixun.cdcas.com/) 】（不止成文理，其他学校以上平台虽也能使用，但仅在成都文理学院做了测试）。
+🚀目前已支持平台：【 [成都文理学院数字化实习实训平台](https://cdcas.rurenkj.com/)、[成都文理学院公益课程](https://cdcas.zjxkeji.com/)、[成都文理学院在线学堂](https://mooc.cdcas.com/)、[成都文理学院英华学堂](https://zxshixun.cdcas.com/) 】（不止成文理，其他学校以上平台虽也能使用，但仅在成都文理学院做了测试）。
 
 😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。
 
