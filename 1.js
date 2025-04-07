@@ -92,7 +92,7 @@ async function inputCaptcha() {
             checkCaptchaTimer = setInterval(playVideo, 1000);
             addText("已自动点击开始播放按钮！");
         } else {
-            addText("未找到开始播放按钮，尝试刷新页面...");
+            addText("未找到开始播放按钮，尝试刷新页面....");
             location.reload();  // 刷新当前页面
         }
     }
