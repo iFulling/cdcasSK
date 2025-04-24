@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手|自动刷课|考试自动答题
-// @version      2.1.2
+// @version      2.1.3
 // @description  成都文理学院刷课助手，（虽不止成文理，但仅在成文理做了测试）🚀目前已支持平台：【数字化实习实训平台、公益课程、在线学堂、英华学堂】。😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。🐧QQ交流群：878643471
 // @author       iFulling
 // @match        *://zxshixun.cdcas.com/*
@@ -30,7 +30,7 @@ let layuiLayerContent = null;
 let links = null;
 let current = 0;
 let timerCnt = 0;
-let version = "2.1.2"
+let version = "2.1.3"
 let endpoint_id = "";
 let apikey = "";
 let examCurrent = 0;
@@ -220,10 +220,10 @@ const addContainer = () => {
 
     const btnGroup = $("<div></div>")
     const classTab = $("<button class='classTabBtn'>刷课配置</button>")
-    const examTab = $("<button class='examTabBtn'>搜题配置</button>")
+    const examTab = $("<button class='examTabBtn examTab1'>搜题配置</button>")
     const statementTab = $("<button class='examTabBtn'>使用说明</button>")
     const sponsorTab = $("<button class='examTabBtn'>捐赠</button>")
-    const minimize = $("<button class='examTabBtn'>缩小窗口</button>")
+    const minimize = $("<button class='examTabBtn minimize'>缩小窗口</button>")
     btnGroup.append(classTab)
     btnGroup.append(examTab)
     btnGroup.append(statementTab)
@@ -385,8 +385,8 @@ const showExamOption = () => {
     examTextElement.append("<h4>提示4</h4>：对接的是抖音豆包，因为是AI，<b>所以不能保证完全正确，分数高低与作者无关</b>，如果有所担心可在搜完后再自己手动搜一遍<br>")
     examTextElement.append("启动成功...<br><br>")
 
-    let endpoint_id = GM_getValue("endpoint_id", " ")
-    let apikey = GM_getValue("apikey", "")
+    endpoint_id = GM_getValue("endpoint_id", "")
+    apikey = GM_getValue("apikey", "")
     let date = new Date();
     date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
 
@@ -428,6 +428,8 @@ const showExamOption = () => {
         setExamStatus("已交卷,不可继续答题");
     }
     saveBtn.on("click", ()=>{
+        endpointInput[0].value = endpointInput[0].value.trim()
+        apikeyInput[0].value = apikeyInput[0].value.trim()
         GM_setValue("endpoint_id", endpointInput[0].value)
         GM_setValue("apikey", apikeyInput[0].value)
         setExamStatus("保存成功！");
@@ -632,7 +634,7 @@ const getAnswer = (question) => {
             responseType: "json",
             onload: function (response) {
                 if (response.status == 401) {
-                    setExamStatus("作者关闭了搜题接口，开启时间等待更新...");
+                    setExamStatus("接口错误！401");
                 } else if (response.status == 200) {
                     try {
                         var answer = response.response["choices"][0].message.content;
@@ -702,7 +704,8 @@ function matchIcon() {
             await pause(5, 10)
             checkCaptchaTimer = setInterval(playVideo, 1000);
         }else if (window.location.href.includes("/exam")){
-            $(".examTabBtn").click()
+            $(".examTab1").click()
+            $(".minimize").click()
         }else{
             $(".classTabBtn").click()
             addText("请点进课程内容，进行学习...<br>")
