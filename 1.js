@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手|自动刷课|考试自动答题
-// @version      2.1.3
+// @version      2.1.6
 // @description  成都文理学院刷课助手，（虽不止成文理，但仅在成文理做了测试）🚀目前已支持平台：【数字化实习实训平台、公益课程、在线学堂、英华学堂】。😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。🐧QQ交流群：878643471
 // @author       iFulling
 // @match        *://zxshixun.cdcas.com/*
@@ -16,7 +16,6 @@
 // @license    	 MIT
 // @namespace  	 https://github.com/iFulling/cdcasSK
 // @connect      119.8.102.43
-// @connect      119.8.102.43:5000
 // @connect      ark.cn-beijing.volces.com
 // ==/UserScript==
 
@@ -30,11 +29,13 @@ let layuiLayerContent = null;
 let links = null;
 let current = 0;
 let timerCnt = 0;
-let version = "2.1.3"
+let version = "2.1.6"
 let endpoint_id = "";
 let apikey = "";
+let useTermDb = false;
 let examCurrent = 0;
 let startFlag = false;
+let videoTimer = null;
 
 // 获取当前课程
 function getCurrent() {
@@ -48,6 +49,7 @@ function getCurrent() {
 // 下一个视频
 async function playNext() {
     clearInterval(checkCaptchaTimer);
+    clearInterval(videoTimer);
     if (current === links.length - 1) {
         addText("最后一个已看完！")
     } else {
@@ -99,6 +101,7 @@ async function inputCaptcha() {
 }
 
 async function test(){
+    await pause(2)
     let img = $("#codeImg")[0]
     // 图片转base64
     let canvas = document.createElement("canvas");
@@ -169,7 +172,8 @@ async function playVideo() {
             clearInterval(checkCaptchaTimer)
             await playNext();
         }else {
-            getVideoElement();
+            videoElement = document.querySelector("video");
+            setVideoElement();
         }
         return
     }
@@ -196,8 +200,7 @@ async function playVideo() {
 }
 
 // 获取视频元素
-const getVideoElement = () => {
-    videoElement = document.querySelector("video");
+const setVideoElement = () => {
     videoElement.muted = true;
     videoElement.playbackRate = 1.0;
     videoElement.volume = 0;
@@ -387,10 +390,20 @@ const showExamOption = () => {
 
     endpoint_id = GM_getValue("endpoint_id", "")
     apikey = GM_getValue("apikey", "")
-    let date = new Date();
-    date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
-
-    examTextElement.append("搜题配置：点击链接 👉 <a target='_blank' href='https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666'>视频教程</a> | <a target='_blank' href='https://kdocs.cn/l/clJtV1RU8GDe'>获取搜题接入点ID和API Key</a><br>")
+    useTermDb = GM_getValue("useTermDb", false)
+    let termSwitch = $("<input type='checkbox' style='width: auto;'>")
+    termSwitch.prop('checked', useTermDb)
+    examTextElement.append("开启题库搜题：")
+    examTextElement.append(termSwitch)
+    examTextElement.append("（目前题量较少）")
+    termSwitch.change(function() {
+        if ($(this).prop('checked')) {
+            GM_setValue("useTermDb", true)
+        } else {
+            GM_setValue("useTermDb", false)
+        }
+    });
+    examTextElement.append("<br>搜题配置：点击链接 👉 <a target='_blank' href='https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666'>视频教程</a> | <a target='_blank' href='https://kdocs.cn/l/clJtV1RU8GDe'>获取搜题接入点ID和API Key</a><br>")
     let endpointDiv = $("<div></div>")
     endpointDiv.append("<span>接入点ID：</span>")
     let endpointInput = $("<input type='text' value='"+endpoint_id+"'/>")
@@ -419,7 +432,7 @@ const showExamOption = () => {
     examTextElement.append(startBtn)
     examTextElement.append(stopBtn)
     examCurrent = parseInt($(".topic-head.on").text()) - 1
-    examTextElement.append("<span id='examStatus'></span>")
+    examTextElement.append("<div style='margin: 0;' id='examStatus'></div>")
     setExamStatus("已停止。搜题将从当前题开始");
     if ($("#startArea").length == 1){
         setExamStatus("等待答题...");
@@ -439,7 +452,7 @@ const showExamOption = () => {
         startFlag = true;
         examCurrent = parseInt($(".topic-head.on").text()) - 1
         let n = $(".courseexamcon-intro").find("ul").children("li").length;
-
+        useTermDb = GM_getValue("useTermDb", false)
         for (; examCurrent < n; examCurrent++) {
             if (!startFlag) break;
             let tab = $("#topic-tab-" + examCurrent)
@@ -448,20 +461,58 @@ const showExamOption = () => {
             // 1 单选 2 多选 3 判断
             let type = parseInt(tab.find(".courseexamcon-main").data("type"))
             if ([1, 2, 3].includes(type)){
-                let question = tab.find(".courseexamcon-main")[0].innerText.replaceAll("\n.\n", ".")
-                let answer = await getAnswer(question)
-                answer = answer.match(/[a-zA-Z]+/)[0];
-                setExamStatus("第 "+ (examCurrent + 1) +" 题答案：" + answer)
-                switch (type) {
-                    case 1:
-                    case 3:
-                        tab.find("input[value='"+answer.toUpperCase()+"']").click()
-                        break;
-                    case 2:
-                        for (let item of answer) {
-                            tab.find("input[value='"+item.toUpperCase()+"']").click()
+                if (type === 2){
+                    tab.find("label").each(function(index, element){
+                        $(element).find("input").prop("checked", false)
+                    })
+                }
+                if (useTermDb) {
+                    let question = tab.find(".courseexamcon-main .name").text().trim()
+                    try{
+                        let answer = await useTermDbGetAnswer(question)
+                        if (answer) {
+                            setExamStatus("题库搜题 第 " + (examCurrent + 1) + " 题答案：" + answer.answer)
+                            let answerList = answer.answer.replaceAll(",", "，").split("，")
+                            let flag = false
+                            tab.find("label").each(function(index, element){
+                                if (answerList.some(item => element.innerText.includes(item))){
+                                    flag = true
+                                    $(element).find("input").prop("checked", true)
+                                }
+                            })
+                            if (flag) {
+                                await pause(3)
+                                let btn = tab.find("input[value='保存修改']")
+                                if (btn.css("display") == "none"){
+                                    tab.find("input[value='继续下一题']").click()
+                                }else{
+                                    btn.click()
+                                    $(".courseexamcon-intro").find("ul").children("li")[examCurrent + 1].querySelector("a").click()
+                                }
+                                continue
+                            }
                         }
-                        break;
+                    }catch(e){
+                        setExamStatus(e)
+                    }
+                }
+                try {
+                    let question = tab.find(".courseexamcon-main")[0].innerText.replaceAll("\n.\n", ".");
+                    let answer = await getAnswer(question);
+                    answer = answer.match(/[a-zA-Z]+/)[0];
+                    setExamStatus("AI搜题 第 " + (examCurrent + 1) + " 题答案：" + answer);
+                    let answerList = answer.split("")
+                    console.log(answerList)
+                    tab.find("label").each(function(index, element){
+                        if (answerList.some(item => element.innerText.includes(item))){
+                            flag = true
+                            $(element).find("input").prop("checked", true)
+                        }
+                    })
+                } catch (e){
+                    startFlag = false
+                    setExamStatus("出错已停止 - " + e);
+                    return
                 }
             }else{
                 setExamStatus("未添加该题型，跳过...")
@@ -481,7 +532,7 @@ const showExamOption = () => {
 
     stopBtn.on("click", ()=>{
         startFlag = false
-        setExamStatus("已停止。下次搜题将从当前题开始")
+        setExamStatus("程序将在 3 秒内停止。下次搜题将从当前题开始")
     })
 }
 const setExamStatus = text => {
@@ -556,7 +607,7 @@ const addStyle = () => {
     overflow: auto;
 }
 .container-exam {
-    max-height: 300px;
+    max-height: 330px;
 }
 
 .container-sponsor {
@@ -634,22 +685,73 @@ const getAnswer = (question) => {
             responseType: "json",
             onload: function (response) {
                 if (response.status == 401) {
-                    setExamStatus("接口错误！401");
+                    return reject("AI 接口错误！401")
                 } else if (response.status == 200) {
                     try {
                         var answer = response.response["choices"][0].message.content;
                         return resolve(answer);
                     } catch (e) {
-                        setExamStatus("异常捕获：接口错误！");
+                        return reject("异常捕获：AI 接口错误！")
                     }
                 } else {
-                    setExamStatus("接口错误！");
+                    return reject("AI 接口错误！")
                 }
             }
         });
     })
 }
 
+const useTermDbGetAnswer = (question) => {
+    return new Promise((resolve, reject) => {
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: "http://119.8.102.43:5000/search_term?keyword=" + question || "",
+            responseType: "json",
+            timeout: 10000,
+            ontimeout: async function (e) {
+                return reject("题目获取超时，下一题...");
+            },
+            onload: function (response) {
+                switch (response.status) {
+                    case 200:
+                        return resolve(response.response.data.terms[0]);
+                    case 400:
+                        return reject(response.response.message);
+                    case 404:
+                        return reject("页面不存在");
+                    default:
+                        return reject(`${response.statusText} ${response.status} - response 出错了`);
+                }
+            },
+            onerror: function (error) {
+                return reject(`${error.statusText} ${error.status} - error 出错了`);
+            },
+        });
+    })
+}
+
+function addVideoTimer() {
+    let count = 0
+    videoTimer = setInterval(() => {
+        videoElement = document.querySelector("video");
+        layuiLayerContent = $('.layui-layer-content');
+        if (videoElement && layuiLayerContent.length === 0) {
+            setVideoElement();
+            if (videoElement.paused) {
+                count++
+                if (count > 60) {
+                    location.reload();  // 刷新当前页面
+                }
+                videoElement.play();
+                if (videoElement.readyState === 4) {
+                    const message = containerTextElement.text().includes("视频加载完成")
+                        ? "请将浏览器置于前台运行。（若学时会增加可忽略）" : "视频加载完成，准备播放";
+                    addText(message);
+                }
+            }
+        }
+    }, 1000)
+}
 // 初始化程序
 const init = async () => {
     addContainer()
@@ -699,9 +801,10 @@ function matchIcon() {
         // await test()
         if (window.location.href.includes("/node")) {
             $(".classTabBtn").click()
-            getCurrent()
             addText("初始化完成，可以解放双手了；为了更像人为点击，将会延时一段时间再播放<br>")
             await pause(5, 10)
+            addVideoTimer();
+            getCurrent()
             checkCaptchaTimer = setInterval(playVideo, 1000);
         }else if (window.location.href.includes("/exam")){
             $(".examTab1").click()
