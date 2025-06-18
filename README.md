@@ -12,7 +12,7 @@
 
 【成都文理学院刷课助手】虽然其他学校也能用，但仅在成都文理学院做了测试。 本脚本改编自 [YoungLee-coder/MoocTool-CDCAS](https://github.com/YoungLee-coder/MoocTool-CDCAS) 刷课脚本。在原基础上，添加了✅用户交互界面、✅自动识别填充验证码、✅AI搜题等功能。
 
-🚀目前已支持平台：【 [成都文理学院数字化实习实训平台](https://cdcas.rurenkj.com/)、[成都文理学院公益课程](https://cdcas.zjxkeji.com/)、[成都文理学院在线学堂](https://mooc.cdcas.com/)、[成都文理学院英华学堂](https://zxshixun.cdcas.com/) 】（不止成文理，其他学校以上平台虽也能使用，但仅在成都文理学院做了测试）。
+🚀目前已支持平台：【 [成都文理学院数字化实习实训平台](https://cdcas.rurenkj.com/)、[成都文理学院公益课程](https://cdcas.zjxkeji.com/)、[成都文理学院在线学堂](https://mooc.cdcas.com/)、[成都文理学院英华学堂](https://zxshixun.cdcas.com/) 】（不止成都文理，其他学校虽也能使用，但仅在成都文理学院做了测试，如果需要添加自己学校的平台，先进入 [成都文理学院在线学堂](https://mooc.cdcas.com/) 然后输入网址即可）。
 
 😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。
 
@@ -26,9 +26,11 @@
 4. 因不同浏览器的优化策略问题，如果发现**学时没变**，看视频时请**将浏览器置于前台运行**。
 5. 安装过老版本的需要把老版本删除或者禁用。
 
-![1](https://s21.ax1x.com/2025/02/27/pE3oC1U.png)
+   ![1](https://s21.ax1x.com/2025/02/27/pE3oC1U.png)
 
-![1](https://s21.ax1x.com/2025/02/27/pE3oPcF.png)
+6. 添加网站，先进入 [成都文理学院在线学堂](https://mooc.cdcas.com/) 然后输入自己学校的网址。
+
+   ![1](https://s21.ax1x.com/2025/06/18/pVEq2U1.png)
 
 ### 📝搜题
 

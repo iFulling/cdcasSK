@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手|自动刷课|考试自动答题
-// @version      2.1.6
+// @version      2.1.7
 // @description  成都文理学院刷课助手，（虽不止成文理，但仅在成文理做了测试）🚀目前已支持平台：【数字化实习实训平台、公益课程、在线学堂、英华学堂】。😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。🐧QQ交流群：878643471
 // @author       iFulling
 // @match        *://zxshixun.cdcas.com/*
@@ -29,10 +29,9 @@ let layuiLayerContent = null;
 let links = null;
 let current = 0;
 let timerCnt = 0;
-let version = "2.1.6"
+let version = "2.1.7"
 let endpoint_id = "";
 let apikey = "";
-let useTermDb = false;
 let examCurrent = 0;
 let startFlag = false;
 let videoTimer = null;
@@ -376,6 +375,60 @@ const showClassOption = () => {
     addText("<h4>提示2</h4>：本脚本仅支持PC端，如果不起作用，点油猴图标看是否有提示 \"<b>Please enable developer mode...</b>\"，若有，点击查看 <a target='_blank' href='https://www.baidu.com/s?wd=%E6%B2%B9%E7%8C%B4%20Please%20enable%20developer'>油猴插件不能使用</a>")
     addText("<h4>提示3</h4>：安装过老版本的需要把老版本删除或者禁用。")
     addText("<h4>提示4</h4>：因不同浏览器的优化策略问题，如果发现<b>学时没变</b>，看视频时请<b>将浏览器置于前台运行</b>。<br>")
+
+    // 获取保存的URL链接，如果没有则使用默认值
+    let urls = GM_getValue("urls", "mooc.cdcas.com|cdcas.rurenkj.com|cdcas.yeruikeji.com");
+
+    // 添加URL配置区域标题
+    addText("<h4>网站配置</h4>：添加或修改可用的网站（每行一个或用|分隔）");
+
+    // 创建多行文本框
+    let urlTextarea = $("<textarea></textarea>");
+    urlTextarea.css({
+        "width": "50%",
+        "height": "60px",
+        "margin-top": "5px",
+        "margin-bottom": "5px",
+        "padding": "5px",
+        "border": "1px solid #ccc",
+        "border-radius": "3px",
+        "overflow-y": "auto"
+    });
+
+    // 设置文本框内容为当前保存的URL，将|替换为换行符
+    urlTextarea.val(urls.replace(/\|/g, '\n'));
+
+    // 添加文本框到容器
+    containerTextElement.append(urlTextarea);
+    containerTextElement.append("<br>");
+    // 创建保存配置按钮
+    let saveUrlBtn = $("<button>保存配置</button>");
+    saveUrlBtn.css({
+        "margin-top": "5px",
+        "padding": "3px 10px",
+        "background-color": "#4CAF50",
+        "color": "white",
+        "border": "none",
+        "border-radius": "3px",
+        "cursor": "pointer"
+    });
+
+    // 添加按钮点击事件
+    saveUrlBtn.on("click", function() {
+        // 获取文本框内容并处理
+        let urlContent = urlTextarea.val().trim();
+        // 将换行符替换为|
+        urlContent = urlContent.replace(/\n+/g, '|');
+        // 保存到GM_setValue
+        GM_setValue("urls", urlContent);
+        // 显示保存成功提示
+        addText("<span style='color:green;'>URL配置已成功保存！</span>");
+    });
+
+    // 添加按钮到容器
+    containerTextElement.append(saveUrlBtn);
+    containerTextElement.append("<br><br>");
+
     addText("启动成功...")
 }
 const showExamOption = () => {
@@ -386,23 +439,10 @@ const showExamOption = () => {
     examTextElement.append("<h4>提示2</h4>：本脚本仅支持PC端，如果不起作用，点油猴图标看是否有提示 \"<b>Please enable developer mode...</b>\"，若有，点击查看 <a target='_blank' href='https://www.baidu.com/s?wd=%E6%B2%B9%E7%8C%B4%20Please%20enable%20developer'>油猴插件不能使用</a><br>")
     examTextElement.append("<h4>提示3</h4>：安装过老版本的需要把老版本删除或者禁用。<br>")
     examTextElement.append("<h4>提示4</h4>：对接的是抖音豆包，因为是AI，<b>所以不能保证完全正确，分数高低与作者无关</b>，如果有所担心可在搜完后再自己手动搜一遍<br>")
-    examTextElement.append("启动成功...<br><br>")
+    examTextElement.append("启动成功...<br>")
 
     endpoint_id = GM_getValue("endpoint_id", "")
     apikey = GM_getValue("apikey", "")
-    useTermDb = GM_getValue("useTermDb", false)
-    let termSwitch = $("<input type='checkbox' style='width: auto;'>")
-    termSwitch.prop('checked', useTermDb)
-    examTextElement.append("开启题库搜题：")
-    examTextElement.append(termSwitch)
-    examTextElement.append("（目前题量较少）")
-    termSwitch.change(function() {
-        if ($(this).prop('checked')) {
-            GM_setValue("useTermDb", true)
-        } else {
-            GM_setValue("useTermDb", false)
-        }
-    });
     examTextElement.append("<br>搜题配置：点击链接 👉 <a target='_blank' href='https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666'>视频教程</a> | <a target='_blank' href='https://kdocs.cn/l/clJtV1RU8GDe'>获取搜题接入点ID和API Key</a><br>")
     let endpointDiv = $("<div></div>")
     endpointDiv.append("<span>接入点ID：</span>")
@@ -452,7 +492,6 @@ const showExamOption = () => {
         startFlag = true;
         examCurrent = parseInt($(".topic-head.on").text()) - 1
         let n = $(".courseexamcon-intro").find("ul").children("li").length;
-        useTermDb = GM_getValue("useTermDb", false)
         for (; examCurrent < n; examCurrent++) {
             if (!startFlag) break;
             let tab = $("#topic-tab-" + examCurrent)
@@ -465,36 +504,6 @@ const showExamOption = () => {
                     tab.find("label").each(function(index, element){
                         $(element).find("input").prop("checked", false)
                     })
-                }
-                if (useTermDb) {
-                    let question = tab.find(".courseexamcon-main .name").text().trim()
-                    try{
-                        let answer = await useTermDbGetAnswer(question)
-                        if (answer) {
-                            setExamStatus("题库搜题 第 " + (examCurrent + 1) + " 题答案：" + answer.answer)
-                            let answerList = answer.answer.replaceAll(",", "，").split("，")
-                            let flag = false
-                            tab.find("label").each(function(index, element){
-                                if (answerList.some(item => element.innerText.includes(item))){
-                                    flag = true
-                                    $(element).find("input").prop("checked", true)
-                                }
-                            })
-                            if (flag) {
-                                await pause(3)
-                                let btn = tab.find("input[value='保存修改']")
-                                if (btn.css("display") == "none"){
-                                    tab.find("input[value='继续下一题']").click()
-                                }else{
-                                    btn.click()
-                                    $(".courseexamcon-intro").find("ul").children("li")[examCurrent + 1].querySelector("a").click()
-                                }
-                                continue
-                            }
-                        }
-                    }catch(e){
-                        setExamStatus(e)
-                    }
                 }
                 try {
                     let question = tab.find(".courseexamcon-main")[0].innerText.replaceAll("\n.\n", ".");
@@ -701,35 +710,6 @@ const getAnswer = (question) => {
     })
 }
 
-const useTermDbGetAnswer = (question) => {
-    return new Promise((resolve, reject) => {
-        GM_xmlhttpRequest({
-            method: "GET",
-            url: "http://119.8.102.43:5000/search_term?keyword=" + question || "",
-            responseType: "json",
-            timeout: 10000,
-            ontimeout: async function (e) {
-                return reject("题目获取超时，下一题...");
-            },
-            onload: function (response) {
-                switch (response.status) {
-                    case 200:
-                        return resolve(response.response.data.terms[0]);
-                    case 400:
-                        return reject(response.response.message);
-                    case 404:
-                        return reject("页面不存在");
-                    default:
-                        return reject(`${response.statusText} ${response.status} - response 出错了`);
-                }
-            },
-            onerror: function (error) {
-                return reject(`${error.statusText} ${error.status} - error 出错了`);
-            },
-        });
-    })
-}
-
 function addVideoTimer() {
     let count = 0
     videoTimer = setInterval(() => {
@@ -784,16 +764,34 @@ function FirstUse(){
     }
 }
 
-function matchIcon() {
+function matchUrl(){
     let iconLink = document.querySelector("link[rel='shortcut icon']");
-    return iconLink && /yinghua|canghui|gyxy|ruren|zjxkeji|yuncanjykeji/.test(iconLink.getAttribute("href"));
+    if (iconLink && /yinghua|canghui|gyxy|ruren|zjxkeji|yuncanjykeji/.test(iconLink.getAttribute("href"))) {
+        return true;
+    }
+    // 获取保存的URLs
+    let urls = "mooc.cdcas.com|cdcas.rurenkj.com|cdcas.yeruikeji.com|"
+    urls += GM_getValue("urls");
+    // 将URLs字符串分割成数组
+    const urlList = urls.split('|');
+    // 获取当前网页的网址
+    const currentUrl = window.location.hostname;
+
+    // 检查当前网址是否与任何一个保存的URL匹配
+    for(let i = 0; i < urlList.length; i++) {
+        if(currentUrl.includes(urlList[i].trim())) {
+            return true;
+        }
+    }
+    // 如果没有匹配项，返回false
+    return false;
 }
 
 // 运行程序
 (function () {
     'use strict';
 
-    if (!matchIcon()) return;
+    if (!matchUrl()) return;
     if (FirstUse()) return;
 
     window.addEventListener("load", async function (){
