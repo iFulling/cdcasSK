@@ -844,13 +844,9 @@ function checkForServerError() {
     
     // 常见的错误状态码和关键词
     const errorPatterns = [
-        /5\d{2}/, // 500, 502, 503等
         /Bad Gateway/i,
         /Service Unavailable/i,
-        /Internal Server Error/i,
-        /服务器错误/i,
-        /网关错误/i,
-        /服务不可用/i
+        /Internal Server Error/i
     ];
     
     // 检查页面标题和内容
