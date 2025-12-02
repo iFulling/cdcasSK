@@ -36,6 +36,8 @@ let apikey = "";
 let examCurrent = 0;
 let startFlag = false;
 let videoTimer = null;
+let pageTimeoutTimer = null; // 页面停留超时计时器
+let errorRefreshTimer = null; // 错误页面刷新计时器
 
 // 获取当前课程
 function getCurrent() {
@@ -409,6 +411,8 @@ const showClassOption = () => {
 
     // 获取保存的URL链接，如果没有则使用默认值
     let urls = GM_getValue("urls", "cdcas.yuruixxkj.com|cdcas.rurenkj.com|cdcas.yeruikeji.com");
+    // 获取页面停留超时时间，如果没有则使用默认值30分钟
+    let timeoutMinutes = GM_getValue("timeout_minutes", 30);
 
     // 添加URL配置区域标题
     addText("<h4>网站配置</h4>：添加或修改可用的网站（每行一个或用|分隔）");
@@ -432,6 +436,7 @@ const showClassOption = () => {
     // 添加文本框到容器
     containerTextElement.append(urlTextarea);
     containerTextElement.append("<br>");
+    
     // 创建保存配置按钮
     let saveUrlBtn = $("<button>保存配置</button>");
     saveUrlBtn.css({
@@ -459,6 +464,52 @@ const showClassOption = () => {
     // 添加按钮到容器
     containerTextElement.append(saveUrlBtn);
     containerTextElement.append("<br><br>");
+    
+    // 添加页面停留超时设置
+    addText("<h4>页面停留超时设置</h4>：设置页面停留的最大时间（单位：分钟，默认30分钟，小于等于0则禁用）");
+    
+    // 创建超时时间输入框
+    let timeoutInput = $("<input type='number' min='0' max='240' step='1' value='" + timeoutMinutes + "' style='width: 80px; margin-left: 10px; padding: 3px; border: 1px solid #ccc; border-radius: 3px;' />");
+    let timeoutLabel = $("<span> 分钟（超时后5秒自动刷新页面）</span>");
+    let timeoutDiv = $("<div style='margin-top: 5px; margin-bottom: 15px;'></div>");
+    timeoutDiv.append(timeoutInput);
+    timeoutDiv.append(timeoutLabel);
+    containerTextElement.append(timeoutDiv);
+    
+    // 创建保存超时设置按钮
+    let saveTimeoutBtn = $("<button>保存超时设置</button>");
+    saveTimeoutBtn.css({
+        "margin-top": "5px",
+        "margin-bottom": "15px",
+        "padding": "3px 10px",
+        "background-color": "#2196F3",
+        "color": "white",
+        "border": "none",
+        "border-radius": "3px",
+        "cursor": "pointer"
+    });
+    
+    containerTextElement.append(saveTimeoutBtn);
+    containerTextElement.append("<br><br>");
+
+    // 添加按钮点击事件
+    saveTimeoutBtn.on("click", function() {
+        let timeoutValue = parseInt(timeoutInput.val());
+        if (isNaN(timeoutValue)) {
+            timeoutValue = 30;
+            timeoutInput.val(30);
+        }
+        GM_setValue("timeout_minutes", timeoutValue);
+        
+        // 重新设置页面超时计时器
+        setupPageTimeoutTimer(timeoutValue);
+        
+        if (timeoutValue <= 0) {
+            addText("<span style='color:green;'>页面停留超时功能已禁用！</span>");
+        } else {
+            addText("<span style='color:green;'>页面停留超时时间已设置为 " + timeoutValue + " 分钟！</span>");
+        }
+    });
 
     addText("启动成功...")
 }
@@ -763,6 +814,74 @@ function addVideoTimer() {
         }
     }, 1000)
 }
+
+// 设置页面停留超时计时器
+function setupPageTimeoutTimer(timeoutMinutes) {
+    // 清除现有的计时器
+    if (pageTimeoutTimer) {
+        clearTimeout(pageTimeoutTimer);
+    }
+    
+    // 如果设置值小于等于0，则禁用该功能
+    if (timeoutMinutes <= 0) {
+        return;
+    }
+    
+    // 设置新的计时器
+    pageTimeoutTimer = setTimeout(() => {
+        addText("页面停留时间已超过 " + timeoutMinutes + " 分钟，将在5秒后自动刷新...");
+        setTimeout(() => {
+            location.reload();
+        }, 5000);
+    }, timeoutMinutes * 60 * 1000); // 转换为毫秒
+}
+
+// 检测500类错误并设置刷新
+function checkForServerError() {
+    // 检测页面是否包含常见的服务器错误信息
+    const pageText = document.body.innerText || "";
+    const htmlContent = document.body.innerHTML || "";
+    
+    // 常见的错误状态码和关键词
+    const errorPatterns = [
+        /5\d{2}/, // 500, 502, 503等
+        /Bad Gateway/i,
+        /Service Unavailable/i,
+        /Internal Server Error/i,
+        /服务器错误/i,
+        /网关错误/i,
+        /服务不可用/i
+    ];
+    
+    // 检查页面标题和内容
+    const pageTitle = document.title || "";
+    let hasError = false;
+    
+    // 检查标题
+    errorPatterns.forEach(pattern => {
+        if (pattern.test(pageTitle)) {
+            hasError = true;
+        }
+    });
+    
+    // 检查页面内容
+    if (!hasError) {
+        errorPatterns.forEach(pattern => {
+            if (pattern.test(pageText) || pattern.test(htmlContent)) {
+                hasError = true;
+            }
+        });
+    }
+    
+    // 如果有错误，设置67秒后刷新
+    if (hasError) {
+        addText("检测到网站服务器错误，将在67秒后自动刷新页面...");
+        errorRefreshTimer = setTimeout(() => {
+            location.reload();
+        }, 67000);
+    }
+}
+
 // 初始化程序
 const init = async () => {
     addContainer()
@@ -827,7 +946,14 @@ function matchUrl(){
 
     window.addEventListener("load", async function (){
         await init()
-        // await test()
+        
+        // 检测500类错误并设置刷新
+        checkForServerError();
+        
+        // 设置页面停留超时计时器
+        let timeoutMinutes = GM_getValue("timeout_minutes", 30);
+        setupPageTimeoutTimer(timeoutMinutes);
+        
         if (window.location.href.includes("/node")) {
             $(".classTabBtn").click()
             addText("初始化完成，可以解放双手了；为了更像人为点击，将会延时一段时间再播放<br>")
