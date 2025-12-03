@@ -38,6 +38,7 @@ let startFlag = false;
 let videoTimer = null;
 let pageTimeoutTimer = null; // 页面停留超时计时器
 let errorRefreshTimer = null; // 错误页面刷新计时器
+let serverErrorMonitorTimer = null; // 服务器错误监控定时器
 
 // 获取当前课程
 function getCurrent() {
@@ -52,11 +53,18 @@ function getCurrent() {
 async function playNext() {
     clearInterval(checkCaptchaTimer);
     clearInterval(videoTimer);
+    stopServerErrorMonitor(); // 停止当前的错误监控
     if (current === links.length - 1) {
         addText("最后一个已看完！")
     } else {
         addText("准备播放下一个视频...")
         await pause(3)
+
+        // 设置一个延迟，等待新页面加载，然后重新启动错误监控
+        setTimeout(() => {
+            startServerErrorMonitor();
+        }, 3000); // 3秒后重新启动监控
+
         links[current + 1].click();
     }
 }
@@ -436,7 +444,7 @@ const showClassOption = () => {
     // 添加文本框到容器
     containerTextElement.append(urlTextarea);
     containerTextElement.append("<br>");
-    
+
     // 创建保存配置按钮
     let saveUrlBtn = $("<button>保存配置</button>");
     saveUrlBtn.css({
@@ -464,10 +472,10 @@ const showClassOption = () => {
     // 添加按钮到容器
     containerTextElement.append(saveUrlBtn);
     containerTextElement.append("<br><br>");
-    
+
     // 添加页面停留超时设置
     addText("<h4>页面停留超时设置</h4>：设置页面停留的最大时间（单位：分钟，默认30分钟，小于等于0则禁用）");
-    
+
     // 创建超时时间输入框
     let timeoutInput = $("<input type='number' min='0' max='240' step='1' value='" + timeoutMinutes + "' style='width: 80px; margin-left: 10px; padding: 3px; border: 1px solid #ccc; border-radius: 3px;' />");
     let timeoutLabel = $("<span> 分钟（超时后5秒自动刷新页面）</span>");
@@ -475,7 +483,7 @@ const showClassOption = () => {
     timeoutDiv.append(timeoutInput);
     timeoutDiv.append(timeoutLabel);
     containerTextElement.append(timeoutDiv);
-    
+
     // 创建保存超时设置按钮
     let saveTimeoutBtn = $("<button>保存超时设置</button>");
     saveTimeoutBtn.css({
@@ -488,7 +496,7 @@ const showClassOption = () => {
         "border-radius": "3px",
         "cursor": "pointer"
     });
-    
+
     containerTextElement.append(saveTimeoutBtn);
     containerTextElement.append("<br><br>");
 
@@ -500,10 +508,10 @@ const showClassOption = () => {
             timeoutInput.val(30);
         }
         GM_setValue("timeout_minutes", timeoutValue);
-        
+
         // 重新设置页面超时计时器
         setupPageTimeoutTimer(timeoutValue);
-        
+
         if (timeoutValue <= 0) {
             addText("<span style='color:green;'>页面停留超时功能已禁用！</span>");
         } else {
@@ -821,12 +829,12 @@ function setupPageTimeoutTimer(timeoutMinutes) {
     if (pageTimeoutTimer) {
         clearTimeout(pageTimeoutTimer);
     }
-    
+
     // 如果设置值小于等于0，则禁用该功能
     if (timeoutMinutes <= 0) {
         return;
     }
-    
+
     // 设置新的计时器
     pageTimeoutTimer = setTimeout(() => {
         addText("页面停留时间已超过 " + timeoutMinutes + " 分钟，将在5秒后自动刷新...");
@@ -837,44 +845,68 @@ function setupPageTimeoutTimer(timeoutMinutes) {
 }
 
 // 检测500类错误并设置刷新
-function checkForServerError() {
-    // 检测页面是否包含常见的服务器错误信息
-    const pageText = document.body.innerText || "";
-    const htmlContent = document.body.innerHTML || "";
-    
-    // 常见的错误状态码和关键词
-    const errorPatterns = [
-        /Bad Gateway/i,
-        /Service Unavailable/i,
-        /Internal Server Error/i
-    ];
-    
-    // 检查页面标题和内容
-    const pageTitle = document.title || "";
-    let hasError = false;
-    
-    // 检查标题
-    errorPatterns.forEach(pattern => {
-        if (pattern.test(pageTitle)) {
-            hasError = true;
-        }
-    });
-    
-    // 检查页面内容
-    if (!hasError) {
-        errorPatterns.forEach(pattern => {
-            if (pattern.test(pageText) || pattern.test(htmlContent)) {
-                hasError = true;
-            }
-        });
+// 启动服务器错误监控
+function startServerErrorMonitor() {
+    // 清除之前的监控
+    if (serverErrorMonitorTimer) {
+        clearInterval(serverErrorMonitorTimer);
     }
-    
-    // 如果有错误，设置67秒后刷新
-    if (hasError) {
-        addText("检测到网站服务器错误，将在67秒后自动刷新页面...");
-        errorRefreshTimer = setTimeout(() => {
-            location.reload();
-        }, 67000);
+
+    // 设置新的监控，每10秒检查一次
+    serverErrorMonitorTimer = setInterval(() => {
+        // 快速检测页面标题是否包含错误信息
+        const pageTitle = document.title || "";
+        const pageText = document.body.innerText || "";
+
+        // 检测nginx 502错误的关键词
+        const errorPatterns = [
+            /502 Bad Gateway/i,
+            /502错误/i,
+            /Bad Gateway/i,
+            /服务器错误/i,
+            /Service Unavailable/i,
+            /Internal Server Error/i
+        ];
+
+        let hasError = false;
+
+        // 快速检查标题
+        for (let pattern of errorPatterns) {
+            if (pattern.test(pageTitle)) {
+                hasError = true;
+                break;
+            }
+        }
+
+        // 如果标题没有，再检查页面内容（但只检查前1000个字符，提高性能）
+        if (!hasError && pageText.length > 0) {
+            for (let pattern of errorPatterns) {
+                if (pattern.test(pageText.substring(0, 1000))) {
+                    hasError = true;
+                    break;
+                }
+            }
+        }
+
+        // 如果有错误，立即刷新
+        if (hasError) {
+            addText("检测到502服务器错误，将在5秒后自动刷新页面...");
+            clearInterval(serverErrorMonitorTimer);
+            serverErrorMonitorTimer = null;
+
+            // 5秒后刷新
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
+        }
+    }, 10000); // 每10秒检查一次
+}
+
+// 停止服务器错误监控
+function stopServerErrorMonitor() {
+    if (serverErrorMonitorTimer) {
+        clearInterval(serverErrorMonitorTimer);
+        serverErrorMonitorTimer = null;
     }
 }
 
@@ -942,14 +974,13 @@ function matchUrl(){
 
     window.addEventListener("load", async function (){
         await init()
-        
-        // 检测500类错误并设置刷新
-        checkForServerError();
-        
+        // 启动服务器错误监控
+        startServerErrorMonitor();
+
         // 设置页面停留超时计时器
         let timeoutMinutes = GM_getValue("timeout_minutes", 30);
         setupPageTimeoutTimer(timeoutMinutes);
-        
+
         if (window.location.href.includes("/node")) {
             $(".classTabBtn").click()
             addText("初始化完成，可以解放双手了；为了更像人为点击，将会延时一段时间再播放<br>")
