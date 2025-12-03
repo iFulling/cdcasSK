@@ -37,8 +37,6 @@ let examCurrent = 0;
 let startFlag = false;
 let videoTimer = null;
 let pageTimeoutTimer = null; // 页面停留超时计时器
-let errorRefreshTimer = null; // 错误页面刷新计时器
-let serverErrorMonitorTimer = null; // 服务器错误监控定时器
 
 // 获取当前课程
 function getCurrent() {
@@ -53,18 +51,11 @@ function getCurrent() {
 async function playNext() {
     clearInterval(checkCaptchaTimer);
     clearInterval(videoTimer);
-    stopServerErrorMonitor(); // 停止当前的错误监控
     if (current === links.length - 1) {
         addText("最后一个已看完！")
     } else {
         addText("准备播放下一个视频...")
         await pause(3)
-
-        // 设置一个延迟，等待新页面加载，然后重新启动错误监控
-        setTimeout(() => {
-            startServerErrorMonitor();
-        }, 3000); // 3秒后重新启动监控
-
         links[current + 1].click();
     }
 }
@@ -844,72 +835,6 @@ function setupPageTimeoutTimer(timeoutMinutes) {
     }, timeoutMinutes * 60 * 1000); // 转换为毫秒
 }
 
-// 检测500类错误并设置刷新
-// 启动服务器错误监控
-function startServerErrorMonitor() {
-    // 清除之前的监控
-    if (serverErrorMonitorTimer) {
-        clearInterval(serverErrorMonitorTimer);
-    }
-
-    // 设置新的监控，每10秒检查一次
-    serverErrorMonitorTimer = setInterval(() => {
-        // 快速检测页面标题是否包含错误信息
-        const pageTitle = document.title || "";
-        const pageText = document.body.innerText || "";
-
-        // 检测nginx 502错误的关键词
-        const errorPatterns = [
-            /502 Bad Gateway/i,
-            /502错误/i,
-            /Bad Gateway/i,
-            /服务器错误/i,
-            /Service Unavailable/i,
-            /Internal Server Error/i
-        ];
-
-        let hasError = false;
-
-        // 快速检查标题
-        for (let pattern of errorPatterns) {
-            if (pattern.test(pageTitle)) {
-                hasError = true;
-                break;
-            }
-        }
-
-        // 如果标题没有，再检查页面内容（但只检查前1000个字符，提高性能）
-        if (!hasError && pageText.length > 0) {
-            for (let pattern of errorPatterns) {
-                if (pattern.test(pageText.substring(0, 1000))) {
-                    hasError = true;
-                    break;
-                }
-            }
-        }
-
-        // 如果有错误，立即刷新
-        if (hasError) {
-            addText("检测到502服务器错误，将在5秒后自动刷新页面...");
-            clearInterval(serverErrorMonitorTimer);
-            serverErrorMonitorTimer = null;
-
-            // 5秒后刷新
-            setTimeout(() => {
-                location.reload();
-            }, 5000);
-        }
-    }, 10000); // 每10秒检查一次
-}
-
-// 停止服务器错误监控
-function stopServerErrorMonitor() {
-    if (serverErrorMonitorTimer) {
-        clearInterval(serverErrorMonitorTimer);
-        serverErrorMonitorTimer = null;
-    }
-}
-
 // 初始化程序
 const init = async () => {
     addContainer()
@@ -972,10 +897,30 @@ function matchUrl(){
     if (!matchUrl()) return;
     if (FirstUse()) return;
 
+    // 1. 立即检查当前页面是否为502错误
+    function quick502Check() {
+        // 快速检查常见502错误特征
+        const errorText = document.body.innerText || document.documentElement.innerText || "";
+        const title = document.title || "";
+
+        if (/Internal Server Error|Service Unavailable|Bad Gateway/i.test(errorText + title)) {
+            console.log("检测到502错误页面，准备刷新...");
+            // 立即设置刷新，但给用户一点时间看到提示
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
+            return true;
+        }
+        return false;
+    }
+
+    // 如果是502错误页面，直接处理并返回
+    if (quick502Check()) {
+        return; // 不继续执行后续初始化
+    }
+
     window.addEventListener("load", async function (){
         await init()
-        // 启动服务器错误监控
-        startServerErrorMonitor();
 
         // 设置页面停留超时计时器
         let timeoutMinutes = GM_getValue("timeout_minutes", 30);
