@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         成都文理学院刷课助手|自动刷课|考试自动答题
-// @version      2.1.9
+// @version      2.1.10
 // @description  成都文理学院刷课助手，（虽不止成文理，但仅在成文理做了测试）🚀目前已支持平台：【数字化实习实训平台、公益课程、在线学堂、英华学堂】。😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。🐧QQ交流群：878643471
 // @author       iFulling
 // @match        *://*.yuruixxkj.com/*
@@ -30,13 +30,16 @@ let layuiLayerContent = null;
 let links = null;
 let current = 0;
 let timerCnt = 0;
-let version = "2.1.9"
+let version = "2.1.10"
 let endpoint_id = "";
 let apikey = "";
 let examCurrent = 0;
 let startFlag = false;
 let videoTimer = null;
 let pageTimeoutTimer = null; // 页面停留超时计时器
+let videoStuckTimer = null;
+let lastVideoTime = 0;
+let stuckCheckCount = 0;
 
 // 获取当前课程
 function getCurrent() {
@@ -51,6 +54,7 @@ function getCurrent() {
 async function playNext() {
     clearInterval(checkCaptchaTimer);
     clearInterval(videoTimer);
+    stopVideoStuckDetection();
     if (current === links.length - 1) {
         addText("最后一个已看完！")
     } else {
@@ -238,6 +242,7 @@ const setVideoElement = () => {
     videoElement.onended = async function () {
         await playNext();
     };
+    startVideoStuckDetection();
 }
 
 
@@ -801,6 +806,7 @@ function addVideoTimer() {
             if (videoElement.paused) {
                 count++
                 if (count > 60) {
+                    stopVideoStuckDetection();
                     location.reload();  // 刷新当前页面
                 }
                 videoElement.play();
@@ -834,6 +840,66 @@ function setupPageTimeoutTimer(timeoutMinutes) {
         }, 5000);
     }, timeoutMinutes * 60 * 1000); // 转换为毫秒
 }
+
+// 启动视频卡死检测
+function startVideoStuckDetection() {
+    // 防止重复启动
+    if (videoStuckTimer) return;
+
+    // 先停止之前的检测
+    stopVideoStuckDetection();
+
+    if (!videoElement) return;
+
+    // 初始化记录
+    lastVideoTime = videoElement.currentTime;
+    stuckCheckCount = 0;
+
+    // 每30秒检测一次
+    videoStuckTimer = setInterval(() => {
+        checkVideoStuck();
+    }, 30000);
+
+    addText("视频卡死检测已启动，每30秒检测一次...");
+}
+
+// 停止视频卡死检测
+function stopVideoStuckDetection() {
+    if (videoStuckTimer) {
+        clearInterval(videoStuckTimer);
+        videoStuckTimer = null;
+    }
+}
+
+// 检测视频是否卡死
+function checkVideoStuck() {
+    if (!videoElement) return;
+
+    const currentTime = videoElement.currentTime;
+    const timeDiff = Math.abs(currentTime - lastVideoTime);
+    stuckCheckCount++;
+
+    // 如果播放时间变化小于0.5秒，判定为卡死
+    if (timeDiff < 0.5) {
+        addText(`⚠️ 检测到视频卡死！第${stuckCheckCount}次检测：播放时间${lastVideoTime.toFixed(1)}s → ${currentTime.toFixed(1)}s，变化${timeDiff.toFixed(2)}s`);
+        addText("5秒后将自动刷新页面...");
+
+        // 停止所有检测和定时器
+        stopVideoStuckDetection();
+        clearInterval(checkCaptchaTimer);
+        clearInterval(videoTimer);
+
+        // 等待5秒后刷新
+        setTimeout(() => {
+            location.reload();
+        }, 5000);
+    } else {
+        // 更新记录
+        lastVideoTime = currentTime;
+    }
+}
+
+
 
 // 初始化程序
 const init = async () => {
