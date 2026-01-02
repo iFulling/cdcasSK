@@ -1,4 +1,4 @@
-# 成都文理学院刷课助手|自动刷课|考试自动答题
+# 英华学堂全系列刷课助手|自动刷课|考试自动答题
 
 ![version](https://img.shields.io/badge/dynamic/json?url=https://scriptcat.org/api/v2/scripts/2933&label=Version&query=$.data.script.version&color=blue) ![ScriptCat](https://img.shields.io/badge/dynamic/json?url=https://scriptcat.org/api/v2/scripts/2933&label=ScriptCat%20%E5%AE%89%E8%A3%85%E9%87%8F&query=$.data.total_install&color=red) ![Tampermonkey](https://img.shields.io/badge/Tampermonkey-v4.9+-green.svg) ![ScriptCat](https://img.shields.io/badge/ScriptCat-v1.2+-beige.svg) ![平台](https://img.shields.io/badge/Platform-Windows-lightgrey.svg) ![许可证](https://img.shields.io/github/license/iFulling/cdcasSK?color=blue&label=License)
 
