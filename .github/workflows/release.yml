@@ -1,0 +1,53 @@
+name: 发布
+
+# 推送 v 开头的 tag 时触发。tag 由 `npm version` 生成，
+# 用 `git push --follow-tags` 推上来即可。
+on:
+  push:
+    tags:
+      - "v*"
+
+# 创建 Release 需要写权限
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: 构建并发布
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v5
+
+      - name: 准备 Node 环境
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 代码检查
+        run: npm run lint
+
+      - name: 类型检查
+        run: npm run typecheck
+
+      # build 内部已包含版本号一致性校验（scripts/verify-version.mjs）
+      - name: 构建
+        run: npm run build
+
+      # 校验 tag 与 package.json 一致，并确认 CHANGELOG 已写好该版本
+      - name: 提取更新说明
+        run: node scripts/release-notes.mjs "${{ github.ref_name }}" > release-notes.md
+
+      - name: 创建 Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            dist/cdcasSK.user.js \
+            --title "${{ github.ref_name }}" \
+            --notes-file release-notes.md \
+            --verify-tag
