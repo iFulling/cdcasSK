@@ -16,6 +16,8 @@ pnpm-debug.log*
 Thumbs.db
 
 # Build output
+# 产物是 dist/cdcasSK.user.js，不提交；发版时本地 build 完手动传到 ScriptCat。
 /dist/
 /build/
 /out/
+.vite/
