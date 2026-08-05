@@ -24,7 +24,11 @@ src/
 └── assets/                icon.png、收款码 webp（构建时内联成 data URI）
 
 scripts/
-└── verify-version.mjs     构建后校验产物版本号与 package.json 一致
+├── verify-version.mjs     构建后校验产物版本号与 package.json 一致
+└── release-notes.mjs      从 CHANGELOG.md 提取指定版本章节，供发布流程使用
+
+.github/workflows/
+└── release.yml            推送 v 开头的 tag 时自动构建并创建 Release
 ```
 
 其他文件：
@@ -43,6 +47,14 @@ scripts/
 - `npm run build` 打包到 `dist/cdcasSK.user.js`
 - `npm run lint` 检查，**改完模块结构必跑** —— 漏掉的 import 只有它能查出来，构建不会报错
 - `npm version patch|minor|major` 发版（自动跑检查、改版本、打 tag、重新构建）
+- `git push --follow-tags` 推送 tag，触发 GitHub Actions 自动建 Release
+
+### 0.4 发版
+1. 先在 `CHANGELOG.md` 顶部补好该版本章节，**面向用户写**，不要写模块名函数名这类实现细节。漏了这步发布会失败。
+2. `npm version patch|minor|major`
+3. `git push --follow-tags`
+4. GitHub Actions 自动构建、提取更新说明、创建 Release 并附上产物
+5. 把产物传到脚本猫，更新说明复制 `CHANGELOG.md` 里那一段
 
 ### 0.5 版本号
 - 三段式 semver，**唯一真相源是 `package.json` 的 `version`**。
@@ -62,6 +74,7 @@ scripts/
 - 涉及状态显示、提示信息、错误信息时，优先保证用户能快速理解。
 
 ### 3. 修改说明文档时
+- 更新日志写在 `CHANGELOG.md`，那是发布说明的唯一来源，`README.md` 只保留最新一版摘要与链接。
 - `README.md` 要和脚本实际功能保持一致。
 - 如果新增平台、功能或配置项，记得同步更新说明文档。
 - 更新日志要写清楚版本变更的重点。
