@@ -1,0 +1,213 @@
+.sk-panel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    z-index: 999999;
+    font-size: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    transition: all 0.3s;
+    max-width: 300px;
+    pointer-events: none;
+}
+.sk-log-popup {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 420px;
+    max-height: 500px;
+    background: #1e1e1e;
+    border: 1px solid #3c3c3c;
+    border-radius: 8px;
+    z-index: 999998;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.sk-log-popup.hidden {
+    display: none;
+}
+.sk-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border-bottom: 1px solid #3c3c3c;
+    cursor: grab;
+    user-select: none;
+}
+.sk-log-title {
+    color: #fff;
+    font-weight: bold;
+}
+.sk-log-actions {
+    display: flex;
+    gap: 8px;
+}
+.sk-log-btn {
+    background: #3c3c3c;
+    color: #fff;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+}
+.sk-log-btn.active {
+    background: #0e639c;
+}
+.sk-log-btn.primary {
+    background: #0e639c;
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+}
+.sk-log-btn:hover {
+    opacity: 0.8;
+}
+.sk-tab-content {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    max-height: 420px;
+}
+.sk-tab-content.active {
+    display: flex;
+    flex-direction: column;
+}
+.sk-log-toolbar {
+    padding: 4px 8px;
+    border-bottom: 1px solid #2d2d2d;
+    background: #252526;
+}
+.sk-log-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px;
+    min-height: 150px;
+}
+.sk-config-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid #2d2d2d;
+}
+.sk-config-item label {
+    display: block;
+    color: #ccc;
+    margin-bottom: 4px;
+}
+.sk-config-item input, .sk-config-item textarea {
+    width: 100%;
+    background: #2d2d2d;
+    border: 1px solid #3c3c3c;
+    color: #fff;
+    padding: 4px;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.sk-config-actions {
+    padding: 12px;
+}
+.sk-log-item {
+    padding: 4px 0;
+    border-bottom: 1px solid #2d2d2d;
+    word-break: break-all;
+}
+.sk-log-item.info { color: #9cdcfe; }
+.sk-log-item.warn { color: #dcdcaa; }
+.sk-log-item.error { color: #f48771; }
+.sk-min-icon {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    background: #1e1e1e;
+    border: 1px solid #3c3c3c;
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 999998;
+    font-size: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+}
+.sk-min-icon:hover {
+    transform: scale(1.1);
+    background: #2d2d2d;
+}
+
+/* 滚动条美化 */
+.sk-tab-content::-webkit-scrollbar,
+.sk-log-content::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.sk-tab-content::-webkit-scrollbar-track,
+.sk-log-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+.sk-tab-content::-webkit-scrollbar-thumb,
+.sk-log-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+.sk-tab-content::-webkit-scrollbar-thumb:hover,
+.sk-log-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+.sk-min-icon.hidden {
+    display: none;
+}
+
+/* Switch 开关样式 */
+.sk-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+.sk-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.sk-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 20px;
+}
+.sk-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+input:checked + .sk-slider {
+    background-color: #0e639c;
+}
+input:checked + .sk-slider:before {
+    transform: translateX(20px);
+}
