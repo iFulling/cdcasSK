@@ -28,6 +28,7 @@ scripts/
 └── release-notes.mjs      从 CHANGELOG.md 提取指定版本章节，供发布流程使用
 
 .github/workflows/
+├── ci.yml                 推送到 main 及 PR 时跑检查与构建
 └── release.yml            推送 v 开头的 tag 时自动构建并创建 Release
 ```
 
@@ -46,6 +47,9 @@ scripts/
 - `npm run dev` 开发（热更新，不用反复重装脚本）
 - `npm run build` 打包到 `dist/cdcasSK.user.js`
 - `npm run lint` 检查，**改完模块结构必跑** —— 漏掉的 import 只有它能查出来，构建不会报错
+- `npm run typecheck` 类型检查
+
+以上三项 CI 会在推送到 main 和提 PR 时自动跑一遍，但本地先跑能省一个来回。
 - `npm version patch|minor|major` 发版（自动跑检查、改版本、打 tag、重新构建）
 - `git push --follow-tags` 推送 tag，触发 GitHub Actions 自动建 Release
 
