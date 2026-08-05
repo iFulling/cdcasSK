@@ -37,6 +37,7 @@ scripts/
 - `vite.config.ts`：构建配置 + UserScript 元数据头（`@match` / `@grant` / `@require`、版本号都写在这里）。
 - 构建产物是 `dist/cdcasSK.user.js`，**不提交进仓库**。发版靠手动传到 ScriptCat 脚本页。
 - `eslint.config.js`：ESLint 配置，`ort` 和页面注入的 `data` 已声明为全局变量。
+- `.npmrc`：只配了 `npm version` 的中文提交信息模板。**不要往里写任何令牌或密码**，它会进仓库。
 - `README.md`：项目说明、安装方法、开发说明、更新日志。
 - `onnx/`：机器视觉资源（模型、字符集）。
 - `收款码/`：收款码原图，`src/assets/*.webp` 由它生成。
