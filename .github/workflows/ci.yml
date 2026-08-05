@@ -1,0 +1,51 @@
+name: 检查
+
+# 推送到 main 以及所有指向 main 的 PR 都会跑。
+# 发版用的 release.yml 只在推 tag 时触发，两者互不影响。
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# 同一分支上有新提交时，取消还在跑的旧任务，避免浪费额度
+concurrency:
+  group: 检查-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: 代码检查与构建
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v5
+
+      - name: 准备 Node 环境
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      # 这一步最关键：模块之间遗漏的引用只有它能查出来，构建阶段不会报错
+      - name: 代码检查
+        run: npm run lint
+
+      - name: 类型检查
+        run: npm run typecheck
+
+      # build 内部已包含版本号一致性校验（scripts/verify-version.mjs）
+      - name: 构建
+        run: npm run build
+
+      # 把构建好的脚本挂到本次运行上，PR 里可以直接下载安装试用，
+      # 不必在本地拉分支重新构建。保留两周。
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: cdcasSK-user-script
+          path: dist/cdcasSK.user.js
+          retention-days: 14

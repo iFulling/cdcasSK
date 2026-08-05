@@ -59,6 +59,8 @@ npm install
 | `npm run typecheck` | TypeScript 检查 `vite.config.ts` |
 | `npm version patch` | 发版：见下方「版本号与发版」 |
 
+推送到 `main` 和提 PR 时，[检查工作流](.github/workflows/ci.yml)会自动跑上面的 `lint`、`typecheck`、`build`，并把构建好的脚本挂在运行记录里，可以直接下载安装试用。
+
 目录结构：
 
 ```
