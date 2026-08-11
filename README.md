@@ -1,157 +1,136 @@
 # 英华学堂全系列刷课助手|自动刷课|考试自动答题
 
-![version](https://img.shields.io/badge/dynamic/json?url=https://scriptcat.org/api/v2/scripts/2933&label=Version&query=$.data.script.version&color=blue) ![ScriptCat](https://img.shields.io/badge/dynamic/json?url=https://scriptcat.org/api/v2/scripts/2933&label=ScriptCat%20%E5%AE%89%E8%A3%85%E9%87%8F&query=$.data.total_install&color=red) ![Tampermonkey](https://img.shields.io/badge/Tampermonkey-v4.9+-green.svg) ![ScriptCat](https://img.shields.io/badge/ScriptCat-v1.2+-beige.svg) ![平台](https://img.shields.io/badge/Platform-Windows%20%7C%20IOS%20%7C%20Android-lightgrey.svg) ![许可证](https://img.shields.io/github/license/iFulling/cdcasSK?color=blue&label=License)
+[![Version](https://img.shields.io/badge/dynamic/json?url=https://scriptcat.org/api/v2/scripts/2933&label=version&query=$.data.script.version&color=blue)](https://scriptcat.org/zh-CN/script-show-page/2933)
+[![ScriptCat 安装量](https://img.shields.io/badge/dynamic/json?url=https://scriptcat.org/api/v2/scripts/2933&label=ScriptCat%20%E5%AE%89%E8%A3%85%E9%87%8F&query=$.data.total_install&color=red)](https://scriptcat.org/zh-CN/script-show-page/2933)
+[![CI](https://github.com/iFulling/cdcasSK/actions/workflows/ci.yml/badge.svg)](https://github.com/iFulling/cdcasSK/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/iFulling/cdcasSK?label=license)](LICENSE)
 
-### 💽安装
+适用于英华学堂相关平台的用户脚本，提供视频自动学习、验证码识别、登录信息填充和考试 AI 搜题等功能。项目原名“成都文理学院刷课助手”，基于 [YoungLee-coder/MoocTool-CDCAS](https://github.com/YoungLee-coder/MoocTool-CDCAS) 改进。
 
-脚本猫使用文档：[快速开始 | ScriptCat](https://docs.scriptcat.org/docs/use/use/)
+> 使用脚本前请遵守学校、课程平台及所在地区的相关规定。AI 搜题结果可能有误，请自行复核。
 
-插件下载链接：[英华学堂全系列刷课助手 | 自动刷课 | 考试自动答题](https://scriptcat.org/zh-CN/script-show-page/2933)
+## 功能
 
-脚本Github链接：[iFulling/cdcasSK: 成都文理学院数字化实习实训平台刷课](https://github.com/iFulling/cdcasSK)
+- 自动播放课程视频、切换下一节，并尝试跳过考试、作业等非视频章节。
+- 检测视频卡顿、页面停留超时和常见的 502 错误。
+- 使用本地 ONNX 模型识别登录页及学习过程中的验证码。
+- 可选自动填写账号和密码，登录信息保存在用户脚本管理器的本地存储中。
+- 在考试页面读取题目，通过 AI 接口获取答案并自动填入。
+- 支持 OpenAI Chat、OpenAI Responses、Claude Messages 和 Gemini generateContent 接口格式。
+- 内置火山引擎、OpenAI、Claude、Gemini、Grok、DeepSeek 预设，也支持 sub2api、new-api 等自建接口。
+- 提供日志、配置、教程和平台域名管理面板。
 
-### 📖介绍
+## 平台范围
 
-【英华学堂全系列刷课助手】，原为 成都文理学院刷课助手。 本脚本改编自 [YoungLee-coder/MoocTool-CDCAS](https://github.com/YoungLee-coder/MoocTool-CDCAS) 刷课脚本。在原基础上，添加了✅用户交互界面、✅自动识别填充验证码、✅AI搜题等功能。
+项目按页面结构将平台分为两类：
 
-🚀目前已支持平台：【[粟湾科技](https://www.suwankj.com/)、[海旗科技](www.haiqikeji.com)、 [御瑞在线学堂](https://yuruixxkj.com/)、[如仁科技](https://rurenkj.com/)、[烨睿科技](https://yeruikeji.com/) 】等等，需要添加其他平台，先进入任一支持的平台然后在脚本界面中添加网址即可。
+- **英华（旧 UI）**：包括 `yuruixxkj.com`、`rurenkj.com`、`suwankj.com`、`chengxikej.com` 等同类站点。
+- **海旗（新 UI）**：`haiqikeji.com` 相关站点。
 
-😀目前已具有功能包括：视频自动播放、自动识别填充验证码、考试自动答题等功能。如有bug请留言。
+进入任一已支持平台后，可以在“配置 → 平台范围”中添加同类学校站点的域名。自定义域名只扩大脚本启用范围，不代表脚本能够适配不同结构的平台；学习通、智慧树等平台目前不支持。
 
-🐧QQ交流群：[878643471](https://qm.qq.com/q/JVXS1pu54O)
+## 安装
 
-<img src="https://s41.ax1x.com/2026/01/03/pZUsnsS.png" height="300" alt="配置页面"> <img src="https://s41.ax1x.com/2026/03/20/penl1tP.png" height="300" alt="日志页面">
+推荐使用 ScriptCat：
 
-### 💻刷课
+1. 安装 [ScriptCat 浏览器扩展](https://docs.scriptcat.org/docs/use/use/)。
+2. 打开 [脚本安装页](https://scriptcat.org/zh-CN/script-show-page/2933)，点击安装。
+3. 进入支持的课程平台，页面加载后打开“刷课助手”悬浮按钮。
 
-1. **如果视频加载不出来，可以试试关闭代理**。如果还是没有视频，就切换网络。如果还是没有，那就是网课的问题。
+也可以从 [GitHub Releases](https://github.com/iFulling/cdcasSK/releases) 下载最新版 `cdcasSK.user.js`，交给 ScriptCat 或 Tampermonkey 安装。
 
-2. 本脚本在电脑、手机、平板都能运行，但是需要先安装油猴或脚本猫才能运行。如果不起作用，可以看看 [脚本不生效](https://docs.scriptcat.org/docs/use/QA/#%E8%84%9A%E6%9C%AC%E4%B8%8D%E7%94%9F%E6%95%88)。
+安装过旧版脚本时，请先禁用或删除旧版，避免多个版本同时运行。
 
-3. 验证码识别需要下载 **机器视觉模型**，每个网站需要下载一次。如果下载比较慢，可以试试科学上网。如果清除了浏览器缓存就需要重新下载。
+## 使用说明
 
-4. 因不同浏览器的优化策略问题（节能模式），如果发现**学时没变**，看视频时需要**将浏览器置于前台运行**。
+### 视频学习
 
-5. 安装过老版本的需要把老版本删除或者禁用。
+进入课程或视频页面后，脚本会自动检测并播放视频。为避免浏览器节能策略影响计时，播放期间建议将课程页面保持在前台，并允许当前站点打开弹出式窗口。
 
-6. 添加网站，先进入任一支持的平台（如 [成都文理学院在线学堂](https://cdcas.yuruixxkj.com/)）然后在脚本界面的网站配置中输入自己学校的网址。这里注意自己学校的网址界面要和成都文理学院在线学堂差不多，相差太大就不适配。
+如果视频无法加载，请依次检查代理、网络连接和课程平台本身是否正常。页面一直停留在同一视频时，可以在“配置 → 自动化”中调整“页面停留上限”，设置为 `0` 可关闭超时处理。
 
+### 验证码识别
 
-### 📝搜题
+首次识别验证码时需要下载机器视觉模型。默认会自动导入，也可以在“配置 → 视觉模型”中手动导入 ONNX 模型、字符集和 WASM 文件。清除用户脚本存储或相关浏览器数据后，可能需要重新导入。
 
-1. 接口按 OpenAI Chat、OpenAI Responses、Claude Messages、Gemini generateContent 四种格式归组。同一格式下的服务商共用请求逻辑，支持火山引擎（豆包）、OpenAI、Claude、Gemini、Grok、DeepSeek，以及 sub2api、new-api 等自建中转站。
+登录页的自动验证码识别默认关闭，可在“配置 → 自动化”中开启。识别错误时，可以在日志页点击“重新识别验证码”。
 
-2. 在配置面板先选择接口格式，再选择该格式下的服务商预设并填写 API Key。官方接口可以留空地址和模型来使用预设值；自建接口需要按面板提示填写基础地址和模型名称。
+### 自动填写账号
 
-3. 填好地址和 API Key 后可以点“获取模型”，从接口返回的模型列表中选择；不支持模型列表的接口仍可手动填写。配置完成后可以点“测试接口”检查连通性。
+在“配置 → 自动化”中开启“自动填写账号和密码”，再填写登录信息并保存。所有已启用的平台共用这一组账号和密码，请仅在私人设备上使用，并确认各站点凭据一致。
 
-4. AI 答案**不能保证完全正确，分数高低与作者无关**，建议搜完后人工复核。火山引擎配置：点击链接 👉 [视频教程](https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666) | [获取搜题接入点ID和API Key](https://kdocs.cn/l/clJtV1RU8GDe)
+### AI 搜题
 
-### 🛠️开发
+1. 打开“配置 → AI 搜题”，选择接口格式和服务商预设。
+2. 填写 API Key。官方接口可以使用预设地址和模型；自建接口需要填写基础地址和模型名称。
+3. 使用“获取模型”选择接口返回的模型，或直接手动填写。
+4. 点击“测试接口”确认配置可用并保存。
+5. 进入考试页面，在日志页点击“开始搜题”。
 
-脚本源码已拆分为 ES 模块，用 [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) 打包成单个用户脚本。
+不同服务商的地址、模型和密钥会分别保存，切换服务商不会互相覆盖。火山引擎的接入点和 API Key 获取方式可参考[视频教程](https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666)及[配置文档](https://kdocs.cn/l/clJtV1RU8GDe)。
+
+## 界面预览
+
+<p>
+  <img src="https://s41.ax1x.com/2026/08/11/pmqyvAU.png" height="300" alt="刷课助手日志页面">
+  <img src="https://s41.ax1x.com/2026/08/11/pmqyxNF.png" height="300" alt="刷课助手视觉模型页面">
+  <img src="https://s41.ax1x.com/2026/08/11/pmqyzh4.png" height="300" alt="刷课助手AI搜题页面">
+</p>
+
+## 常见问题
+
+- **脚本没有出现**：确认扩展和脚本均已启用；自定义站点需要先在已支持平台的配置面板中添加域名。也可查看 ScriptCat 的[脚本不生效排查说明](https://docs.scriptcat.org/docs/use/QA/#%E8%84%9A%E6%9C%AC%E4%B8%8D%E7%94%9F%E6%95%88)。
+- **学时没有变化**：将视频页面保持在前台，关闭浏览器节能或休眠限制后重试。
+- **补刷时不自动跳转**：允许当前站点打开弹出式窗口。
+- **验证码模型下载失败**：检查网络后重试；也可以在配置面板中手动导入 `onnx/` 目录中的模型和字符集，并另行导入 ONNX Runtime 的 WASM 引擎。
+- **AI 接口报错**：先使用“测试接口”，再检查接口格式、基础地址、模型名称、API Key 和账户余额。
+
+问题反馈与交流：[QQ 群 878643471](https://qm.qq.com/q/JVXS1pu54O)。
+
+## 本地开发
+
+项目源码使用 ES 模块，通过 [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey) 打包为单文件用户脚本。
 
 ```bash
 npm install
+npm run dev
 ```
 
 | 命令 | 说明 |
 | --- | --- |
-| `npm run dev` | 启动开发服务器，浏览器里装一次开发版脚本即可热更新，改源码不用重装 |
-| `npm run build` | 打包，产物是 `dist/cdcasSK.user.js`（不进 git，发版时手动传到 ScriptCat） |
-| `npm run lint` | ESLint 检查（能查出模块间漏掉的引用、未定义变量） |
-| `npm run typecheck` | TypeScript 检查 `vite.config.ts` |
-| `npm version patch` | 发版：见下方「版本号与发版」 |
+| `npm run dev` | 启动开发服务器，安装一次开发版脚本后可热更新 |
+| `npm run lint` | 运行 ESLint 检查 |
+| `npm run typecheck` | 检查 `vite.config.ts` 类型 |
+| `npm run build` | 构建 `dist/cdcasSK.user.js` 并校验版本号 |
 
-推送到 `main` 和提 PR 时，[检查工作流](.github/workflows/ci.yml)会自动跑上面的 `lint`、`typecheck`、`build`，并把构建好的脚本挂在运行记录里，可以直接下载安装试用。
+主要目录：
 
-目录结构：
-
-```
+```text
 src/
-├── index.js              入口：网址匹配 + 502 检测 + 启动 App
-├── config.js             CONFIG / SELECTORS 常量
-├── app.js                主流程状态机
-├── ai/
-│   ├── client.js         统一 AI 请求与错误处理
-│   ├── providers.js      厂商预设与协议映射
-│   ├── utils.js          地址、文本与错误处理工具
-│   └── protocols/        OpenAI Chat / Responses / Claude / Gemini
-├── core/
-│   ├── logger.js         日志
-│   ├── utils.js          通用工具
-│   └── config-manager.js GM 存储读写
-├── ui/
-│   ├── ui-manager.js     面板创建与事件绑定
-│   ├── panel-template.js 面板 HTML 模板
-│   └── styles.css        面板样式
-├── features/
-│   ├── video-player.js   视频播放与卡顿检测
-│   ├── ocr-engine.js     ONNX 验证码识别引擎
-│   ├── captcha-handler.js 验证码流程
-│   └── exam-solver.js    题目读取、答案解析与自动填充
-└── assets/               图标与收款码（构建时内联成 data URI）
+├── ai/          AI 服务商、协议与统一请求逻辑
+├── assets/      图标和界面图片资源
+├── core/        日志、工具和配置存储
+├── features/    视频、验证码与考试搜题功能
+├── ui/          面板结构、事件与样式
+├── app.js       页面流程与任务状态
+├── config.js    默认配置和页面选择器
+└── index.js     入口与平台匹配
 ```
 
-几点约定：
+开发时请注意：
 
-- **仓库里只有源码，没有构建产物。** 产物在 `dist/`，发版时手动传到 ScriptCat 脚本页。
-- UserScript 元数据头（`@match` / `@grant` / `@require` 等）写在 [`vite.config.ts`](vite.config.ts) 里，不在源码里。
-- 收款码原图放在 `收款码/`，`src/assets/*.webp` 是缩放后的版本（300px 宽，UI 里显示 150px，2× 覆盖高分屏）。需要重新生成时：
+- UserScript 元数据维护在 [`vite.config.ts`](vite.config.ts)，新增 `GM_*` API 时需要同步补充 `grant`。
+- 版本号唯一来源是 [`package.json`](package.json)，不要手动修改脚本头或源码中的版本常量。
+- 构建产物位于 `dist/`，不提交到仓库。
+- 发布说明唯一来源是 [`CHANGELOG.md`](CHANGELOG.md)。
 
-  ```bash
-  python -c "from PIL import Image; [Image.open(s).convert('RGB').resize((300, round(Image.open(s).height*300/Image.open(s).width)), Image.LANCZOS).save(d, 'WEBP', quality=82, method=6) for s, d in [('收款码/微信.jpg','src/assets/donate-wechat.webp'), ('收款码/支付宝.jpg','src/assets/donate-alipay.webp')]]"
-  ```
+## 发布
 
-#### 版本号与发版
+1. 在 `CHANGELOG.md` 顶部添加新版本说明。
+2. 运行 `npm version patch`、`npm version minor` 或 `npm version major`。
+3. 运行 `git push --follow-tags`。
+4. GitHub Actions 会创建 Release 并附带构建产物；再将产物上传到 ScriptCat。
 
-版本号采用三段式 [语义化版本](https://semver.org/lang/zh-CN/)，**唯一真相源是 `package.json` 的 `version`**。脚本头的 `@version` 和源码里的 `CONFIG.VERSION` 都由构建期自动注入，任何一处都不要手改。
+## 许可证
 
-发版分三步：
-
-**第一步**，在 [`CHANGELOG.md`](CHANGELOG.md) 顶部补好这个版本的章节（面向用户写，说清楚用户能感知到什么变化）。漏了这步后面会直接失败。
-
-**第二步**，本地打版本：
-
-```bash
-npm version minor
-```
-
-`patch` 修 bug、`minor` 加功能、`major` 破坏性改动。它会串起：
-
-1. **preversion** — 跑 `lint` + `typecheck`，任一不过就中止，版本号不会被改
-2. 改写 `package.json` 的版本号，生成 git 提交并打上 `v4.3.0` 这样的 tag
-3. **postversion** — 重新构建，并校验产物里的两处版本号和 `package.json` 一致
-
-**第三步**，把提交和 tag 一起推上去：
-
-```bash
-git push --follow-tags
-```
-
-tag 一到 GitHub，[发布工作流](.github/workflows/release.yml)就会自动跑：装依赖 → 检查 → 构建 → 从 `CHANGELOG.md` 提取该版本章节 → **创建 Release 并附上构建好的 `cdcasSK.user.js`**。
-
-工作流里有两道闸，任一不过就不会发布：tag 必须和 `package.json` 版本一致，`CHANGELOG.md` 里必须已有该版本的章节且非空。
-
-发布完成后，脚本有一个固定不变的下载地址，指向最新版：
-
-```
-https://github.com/iFulling/cdcasSK/releases/latest/download/cdcasSK.user.js
-```
-
-最后把这个文件（或 Release 页面里的附件）传到 ScriptCat，更新说明直接复制 `CHANGELOG.md` 里那一段。
-
-> ⚠️ 油猴和脚本猫比较版本时会给缺失的段补零，所以 **`4.2` 和 `4.2.0` 是相等的**。线上目前是 `4.2`，下一次发版必须从 `4.2.1` 或 `4.3.0` 起，传 `4.2.0` 上去会被当作"没有更新"。
->
-> 另外 `npm version` 要求工作区干净，有未提交的改动会直接报错 —— 这是有意为之，避免把没提交的东西混进发布。
-
-### 📋更新日志
-
-完整更新日志见 **[CHANGELOG.md](CHANGELOG.md)**，也可以在 [Releases 页面](https://github.com/iFulling/cdcasSK/releases)按版本查看。
-
-#### v4.2
-- 新增自动填写账号和密码功能，可在配置面板中统一保存账号和密码，并在英华系和海旗科技登录页自动填充。
-- 优化海旗科技章节定位逻辑，优先使用当前激活章节进行判断，减少章节标题重复带来的误判。
-- 优化英华系章节定位逻辑，改为优先识别 `a.on` 和 `nodeId`，避免因章节标题不唯一导致的错误跳转。
-- 调整视觉模型自动导入逻辑，支持单独开关控制，关闭后仅阻止自动下载，不影响已存在模型的正常识别。
-- 补充配置面板顶部提示，提醒修改完配置后记得保存。
+本项目采用 [MIT License](LICENSE)。
