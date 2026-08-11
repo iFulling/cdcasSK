@@ -21,3 +21,7 @@ Thumbs.db
 /build/
 /out/
 .vite/
+
+# 本地界面预览与浏览器验收产物
+/.playwright-cli/
+/output/playwright/

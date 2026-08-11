@@ -39,9 +39,13 @@
 
 ### 📝搜题
 
-1. 对接的是抖音豆包，因为是AI，**所以不能保证完全正确，分数高低与作者无关**，如果有所担心可在搜完后再自己手动搜一遍
+1. 接口按 OpenAI Chat、OpenAI Responses、Claude Messages、Gemini generateContent 四种格式归组。同一格式下的服务商共用请求逻辑，支持火山引擎（豆包）、OpenAI、Claude、Gemini、Grok、DeepSeek，以及 sub2api、new-api 等自建中转站。
 
-2. 搜题配置：点击链接 👉 [视频教程](https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666) | [获取搜题接入点ID和API Key](https://kdocs.cn/l/clJtV1RU8GDe)
+2. 在配置面板先选择接口格式，再选择该格式下的服务商预设并填写 API Key。官方接口可以留空地址和模型来使用预设值；自建接口需要按面板提示填写基础地址和模型名称。
+
+3. 填好地址和 API Key 后可以点“获取模型”，从接口返回的模型列表中选择；不支持模型列表的接口仍可手动填写。配置完成后可以点“测试接口”检查连通性。
+
+4. AI 答案**不能保证完全正确，分数高低与作者无关**，建议搜完后人工复核。火山引擎配置：点击链接 👉 [视频教程](https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666) | [获取搜题接入点ID和API Key](https://kdocs.cn/l/clJtV1RU8GDe)
 
 ### 🛠️开发
 
@@ -66,8 +70,13 @@ npm install
 ```
 src/
 ├── index.js              入口：网址匹配 + 502 检测 + 启动 App
-├── config.js             CONFIG / API / SELECTORS 常量
+├── config.js             CONFIG / SELECTORS 常量
 ├── app.js                主流程状态机
+├── ai/
+│   ├── client.js         统一 AI 请求与错误处理
+│   ├── providers.js      厂商预设与协议映射
+│   ├── utils.js          地址、文本与错误处理工具
+│   └── protocols/        OpenAI Chat / Responses / Claude / Gemini
 ├── core/
 │   ├── logger.js         日志
 │   ├── utils.js          通用工具
@@ -80,7 +89,7 @@ src/
 │   ├── video-player.js   视频播放与卡顿检测
 │   ├── ocr-engine.js     ONNX 验证码识别引擎
 │   ├── captcha-handler.js 验证码流程
-│   └── exam-solver.js    搜题
+│   └── exam-solver.js    题目读取、答案解析与自动填充
 └── assets/               图标与收款码（构建时内联成 data URI）
 ```
 

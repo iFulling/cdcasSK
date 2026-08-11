@@ -38,7 +38,17 @@ export default defineConfig({
                     "*://*/*",
                 ],
                 icon: iconDataUri,
-                connect: ["ark.cn-beijing.volces.com"],
+                // 各家 AI 接口域名（与 src/ai/providers.js 保持一致）。
+                // 末尾的 `*` 是给自建中转站（sub2api / new-api）留的，地址由用户填，无法提前枚举。
+                connect: [
+                    "ark.cn-beijing.volces.com",
+                    "api.openai.com",
+                    "api.anthropic.com",
+                    "generativelanguage.googleapis.com",
+                    "api.x.ai",
+                    "api.deepseek.com",
+                    "*",
+                ],
                 grant: [
                     "GM_setValue",
                     "GM_getValue",

@@ -12,9 +12,7 @@ export const CONFIG = {
     }
 };
 
-export const API = {
-    AI_CHAT: "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
-};
+// 搜题接口地址不再写在这里：各厂商的默认地址见 src/ai/providers.js
 
 export const SELECTORS = {
     VIDEO: "video, .video-player",

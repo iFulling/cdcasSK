@@ -18,6 +18,8 @@ export class App {
     }
     init() {
         if (!this._checkFirstUse()) return;
+        // 必须在 UI 之前，配置面板渲染时要读到迁移后的值
+        ConfigManager.migrate();
         this._checkCourseChange();
         this.ui.init();
         this._initRouteListener();
