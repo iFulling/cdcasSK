@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>会员中心-测评考试-本地测试页</title>
+<!--
+    结构照 泰诗科技 那份真实考试页（已交卷回顾态）扒下来的，但改成了「答题中」的状态：
+    去掉 disabled、补上真实页面上才有的 保存修改 / 继续下一题 按钮，
+    只保留 src/features/exam-solver.js 会读到的那些选择器，倒计时和交卷一概不要。
+
+    下面这行 favicon 是给 src/index.js 的 matchUrl() 看的：
+    它认 href 里的 yuruixxkj|yinghua|canghui|gyxy|ruren|zjxkeji|yuncanjykeji|haiqikeji，
+    命中就放行，于是 localhost 也能启动脚本，不用去配置面板改网址列表。
+    文件本身不存在没关系，matchUrl 只读属性不发请求。
+-->
+<link rel="shortcut icon" href="/static/favicon/ruren.ico">
+<style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 20px; background: #f5f6f8; color: #333;
+           font: 14px/1.6 "Microsoft YaHei", "PingFang SC", sans-serif; }
+    #examArea { max-width: 900px; margin: 0 auto; background: #fff;
+                padding: 20px 28px 32px; border-radius: 4px; }
+
+    .courseexamcon-intro .head { overflow: hidden; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+    .courseexamcon-intro .head .name { float: left; font-size: 15px; font-weight: bold; }
+    .courseexamcon-intro .list ul { list-style: none; margin: 12px 0 0; padding: 0; overflow: hidden; }
+    .courseexamcon-intro .list ul li { float: left; margin: 0 8px 8px 0; }
+    a.topic-head { display: block; width: 32px; height: 32px; line-height: 32px; text-align: center;
+                   border: 1px solid #ddd; border-radius: 3px; color: #666;
+                   text-decoration: none; background: #fff; }
+    a.topic-head.ok { border-color: #5aab5a; color: #5aab5a; }
+    a.topic-head.on { background: #ea8010; border-color: #ea8010; color: #fff; }
+
+    .topic-item { border-top: 1px solid #eee; margin-top: 18px; }
+    .courseexamcon-main { padding-top: 25px; }
+    .courseexamcon-main .head { overflow: hidden; }
+    .courseexamcon-main .head .num { float: left; line-height: 26px; padding-right: 10px; }
+    .courseexamcon-main .head .type { float: left; line-height: 24px; padding: 0 10px; margin-right: 10px;
+                                      border: 1px solid #ea8010; border-radius: 3px; color: #ea8010; }
+    .courseexamcon-main .head .total { float: left; line-height: 26px; }
+    .courseexamcon-main .name { padding: 10px 0 0; }
+    .courseexamcon-main .list { padding-top: 5px; }
+    .courseexamcon-main .list ul { list-style: none; margin: 0; padding: 0; }
+    .courseexamcon-main .list ul li { overflow: hidden; padding-top: 15px;
+                                      line-height: 24px; color: #666; cursor: pointer; }
+    .courseexamcon-main .list ul li input { float: left; margin: 5px 10px 0 2px; }
+    .courseexamcon-main .list ul li label { display: inline-block; }
+    /*
+        这两条是从平台 exam.css 原样抄来的，不是装饰，别改成 inline：
+        span 是 display:block 时，innerText 会在 A / . / 选项文字之间插入换行，
+        题面因此长成 "A\n.\n警告"，而 exam-solver.js 里那句
+        `.replace(/\n\.\n/g, ".")` 正是为它写的。改成 inline 就测不到那行。
+    */
+    .courseexamcon-main .list ul li span { float: left; display: block; cursor: pointer; }
+    .courseexamcon-main .list ul li span.dian { margin-right: 10px; }
+    .courseexamcon-main .textarea { padding-top: 15px; }
+    .courseexamcon-main .textarea textarea { width: 100%; height: 80px; padding: 8px; }
+
+    .courseexamcon-submit { padding-top: 22px; }
+    .courseexamcon-submit input { padding: 7px 18px; margin-right: 10px; cursor: pointer;
+                                  border: 1px solid #ea8010; border-radius: 3px;
+                                  background: #ea8010; color: #fff; }
+    .courseexamcon-submit input.complete { background: #fff; color: #ea8010; }
+
+    #mock-panel { max-width: 900px; margin: 0 auto 16px; padding: 14px 18px;
+                  background: #fffdf5; border: 1px solid #e8d9a8; border-radius: 4px; }
+    #mock-panel h1 { font-size: 15px; margin: 0 0 6px; }
+    #mock-panel p { margin: 3px 0; font-size: 13px; color: #666; }
+    #mock-panel code { background: #f0ece0; padding: 1px 4px; border-radius: 2px; }
+    #mock-panel button { margin: 10px 8px 0 0; padding: 6px 14px; cursor: pointer;
+                         border: 1px solid #bbb; border-radius: 3px; background: #fff; }
+    #mock-result table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+    #mock-result th, #mock-result td { border: 1px solid #e3e3e3; padding: 4px 8px; text-align: left; }
+    #mock-result th { background: #f3f3f3; }
+    .r-pass { color: #2e7d32; }
+    .r-known { color: #b26a00; }
+    .r-fail { color: #c62828; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<aside id="mock-panel">
+    <h1>本地考试测试页</h1>
+    <p>10 道题覆盖 单选 / 多选 / 判断 / 未知题型，答案由 <code>mock/server.mjs</code> 按题号返回。</p>
+    <p>跑完点「校验答案」对比期望值。第 5、7 题是<strong>选项正文含大写字母的回归用例</strong>，全部应为「通过」。</p>
+    <p><strong>换成真实 AI 接口时，「校验答案」的结论没有意义</strong> —— 期望值是照
+       <code>mock/server.mjs</code> 里写死的返回标的，题目本身是校规类内容、没有客观答案，
+       真模型给什么都算不上错。那种情况下只看流程：题号是否逐题推进、每题是否都勾上了东西、
+       脚本日志里有没有报错。</p>
+    <p id="mock-branch"></p>
+    <button type="button" id="mock-verify">校验答案</button>
+    <button type="button" id="mock-toggle">切换到「保存修改」分支</button>
+    <button type="button" id="mock-reset">重置</button>
+    <div id="mock-result"></div>
+</aside>
+
+<div id="examArea" class="courseexamcon">
+    <div class="courseexamcon-intro">
+        <div class="head"><div class="name">题号区</div></div>
+        <div class="list">
+            <ul>
+                <!--
+                    exam-solver.js 的 EXAM_INTRO_LIST 就是 `.courseexamcon-intro ul li`：
+                    li 的数量决定循环上限，`.topic-head.on` 的文字（1 起）决定从第几题开始，
+                    _nextQuestion 走「保存修改」分支时会点 li 里的 a 来跳题。
+                    data-index 是平台 pageNext(true) 用来找下一道未答题的。
+                -->
+                <li><a data-id="9001" data-index="0" href="javascript:;" class="topic-head on" id="topic-head-0" onclick="pageJump2(0)">1</a></li>
+                <li><a data-id="9002" data-index="1" href="javascript:;" class="topic-head" id="topic-head-1" onclick="pageJump2(1)">2</a></li>
+                <li><a data-id="9003" data-index="2" href="javascript:;" class="topic-head" id="topic-head-2" onclick="pageJump2(2)">3</a></li>
+                <li><a data-id="9004" data-index="3" href="javascript:;" class="topic-head" id="topic-head-3" onclick="pageJump2(3)">4</a></li>
+                <li><a data-id="9005" data-index="4" href="javascript:;" class="topic-head" id="topic-head-4" onclick="pageJump2(4)">5</a></li>
+                <li><a data-id="9006" data-index="5" href="javascript:;" class="topic-head" id="topic-head-5" onclick="pageJump2(5)">6</a></li>
+                <li><a data-id="9007" data-index="6" href="javascript:;" class="topic-head" id="topic-head-6" onclick="pageJump2(6)">7</a></li>
+                <li><a data-id="9008" data-index="7" href="javascript:;" class="topic-head" id="topic-head-7" onclick="pageJump2(7)">8</a></li>
+                <li><a data-id="9009" data-index="8" href="javascript:;" class="topic-head" id="topic-head-8" onclick="pageJump2(8)">9</a></li>
+                <li><a data-id="9010" data-index="9" href="javascript:;" class="topic-head" id="topic-head-9" onclick="pageJump2(9)">10</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!--
+        每道题一个 form：单选的 radio 靠 form 划分分组，
+        所以十道题的 input 都叫 answer 也不会互相顶掉（radio 分组以 form owner 为界）。
+        data-expect 是正确答案，data-actual 是当前实现实际会选出来的，
+        两者不一致的就是已知缺陷，data-note 写原因，校验面板按这三个字段判定。
+    -->
+    <div id="topic-tab-0" class="topic-item" data-expect="A" data-note="最简路径：模型只回一个字母">
+        <form method="post" action="javascript:;" onsubmit="return false">
+            <div class="courseexamcon-main" data-type="1">
+                <div class="head">
+                    <div class="num"><span>1</span>.</div>
+                    <div class="type">单选</div>
+                    <div class="total">（<span>2</span>分） </div>
+                </div>
+                <div class="name" style="padding: 10px;word-wrap:break-word;">在规定学习时间内进行与学习无关的活动，并严重影响他人正常学习、生活者，给予（　　）处分。</div>
+                <div class="list">
+                    <ul>
+                        <li><label><input type="radio" value="A" class="exam-inp" name="answer"><span class="num">A</span><span class="dian">.</span><span class="txt">警告</span></label></li>
+                        <li><label><input type="radio" value="B" class="exam-inp" name="answer"><span class="num">B</span><span class="dian">.</span><span class="txt">严重警告</span></label></li>
+                        <li><label><input type="radio" value="C" class="exam-inp" name="answer"><span class="num">C</span><span class="dian">.</span><span class="txt">记过</span></label></li>
+                        <li><label><input type="radio" value="D" class="exam-inp" name="answer"><span class="num">D</span><span class="dian">.</span><span class="txt">留校察看</span></label></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="courseexamcon-submit">
+                <input class="next_exam" type="button" value="继续下一题">
+                <input class="complete" type="button" value="保存修改" style="display:none">
+            </div>
+        </form>
+    </div>
+
+    <div id="topic-tab-1" class="topic-item" style="display:none" data-expect="B" data-note="返回带「答案：」前缀，走 extractChoiceAnswer 的 labelled 分支">
+        <form method="post" action="javascript:;" onsubmit="return false">
+            <div class="courseexamcon-main" data-type="1">
+                <div class="head">
+                    <div class="num"><span>2</span>.</div>
+                    <div class="type">单选</div>
+                    <div class="total">（<span>2</span>分） </div>
+                </div>
+                <div class="name" style="padding: 10px;word-wrap:break-word;">学生在校期间因病需要请假，应当向（　　）提交申请。</div>
+                <div class="list">
+                    <ul>
+                        <li><label><input type="radio" value="A" class="exam-inp" name="answer"><span class="num">A</span><span class="dian">.</span><span class="txt">任课教师</span></label></li>
+                        <li><label><input type="radio" value="B" class="exam-inp" name="answer"><span class="num">B</span><span class="dian">.</span><span class="txt">辅导员</span></label></li>
+                        <li><label><input type="radio" value="C" class="exam-inp" name="answer"><span class="num">C</span><span class="dian">.</span><span class="txt">班干部</span></label></li>
+                        <li><label><input type="radio" value="D" class="exam-inp" name="answer"><span class="num">D</span><span class="dian">.</span><span class="txt">同宿舍同学</span></label></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="courseexamcon-submit">
+                <input class="next_exam" type="button" value="继续下一题">
+                <input class="complete" type="button" value="保存修改" style="display:none">
+            </div>
+        </form>
+    </div>
+
+    <div id="topic-tab-2" class="topic-item" style="display:none" data-expect="C" data-note="返回被 think 包住，思考过程里出现了 A/B/D；normalizeText 不剥的话会解析成 ABDC">
+        <form method="post" action="javascript:;" onsubmit="return false">
+            <div class="courseexamcon-main" data-type="1">
+                <div class="head">
+                    <div class="num"><span>3</span>.</div>
+                    <div class="type">单选</div>
+                    <div class="total">（<span>2</span>分） </div>
+                </div>
+                <div class="name" style="padding: 10px;word-wrap:break-word;">宿舍内禁止使用大功率电器，主要原因是（　　）。</div>
+                <div class="list">
+                    <ul>
+                        <li><label><input type="radio" value="A" class="exam-inp" name="answer"><span class="num">A</span><span class="dian">.</span><span class="txt">影响他人休息</span></label></li>
+                        <li><label><input type="radio" value="B" class="exam-inp" name="answer"><span class="num">B</span><span class="dian">.</span><span class="txt">浪费电费</span></label></li>
+                        <li><label><input type="radio" value="C" class="exam-inp" name="answer"><span class="num">C</span><span class="dian">.</span><span class="txt">存在火灾隐患</span></label></li>
+                        <li><label><input type="radio" value="D" class="exam-inp" name="answer"><span class="num">D</span><span class="dian">.</span><span class="txt">容易损坏电器</span></label></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="courseexamcon-submit">
+                <input class="next_exam" type="button" value="继续下一题">
+                <input class="complete" type="button" value="保存修改" style="display:none">
+            </div>
+        </form>
+    </div>
+
+    <div id="topic-tab-3" class="topic-item" style="display:none" data-expect="D" data-note="返回是一句话，字母夹在中文里，走 isolated 分支">
+        <form method="post" action="javascript:;" onsubmit="return false">
+            <div class="courseexamcon-main" data-type="1">
+                <div class="head">
+                    <div class="num"><span>4</span>.</div>
+                    <div class="type">单选</div>
+                    <div class="total">（<span>2</span>分） </div>
+                </div>
+                <div class="name" style="padding: 10px;word-wrap:break-word;">发现同学有自伤倾向时，最恰当的做法是（　　）。</div>
+                <div class="list">
+                    <ul>
+                        <li><label><input type="radio" value="A" class="exam-inp" name="answer"><span class="num">A</span><span class="dian">.</span><span class="txt">保守秘密不告诉任何人</span></label></li>
+                        <li><label><input type="radio" value="B" class="exam-inp" name="answer"><span class="num">B</span><span class="dian">.</span><span class="txt">在班级群里公开讨论</span></label></li>
+                        <li><label><input type="radio" value="C" class="exam-inp" name="answer"><span class="num">C</span><span class="dian">.</span><span class="txt">等对方自己好转</span></label></li>
+                        <li><label><input type="radio" value="D" class="exam-inp" name="answer"><span class="num">D</span><span class="dian">.</span><span class="txt">立即报告辅导员并陪同就医</span></label></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="courseexamcon-submit">
+                <input class="next_exam" type="button" value="继续下一题">
+                <input class="complete" type="button" value="保存修改" style="display:none">
+            </div>
+        </form>
+    </div>
+
+    <!-- 回归用：选项 D 正文里含大写 C，早先的 label.innerText.includes 会误中并把正确答案顶掉 -->
+    <div id="topic-tab-4" class="topic-item" style="display:none" data-expect="C" data-note="选项 D 正文含大写 C（C 区）；选项号改成从 input.value / span.num 取之后不该再误中">
+        <form method="post" action="javascript:;" onsubmit="return false">
+            <div class="courseexamcon-main" data-type="1">
+                <div class="head">
+                    <div class="num"><span>5</span>.</div>
+                    <div class="type">单选</div>
+                    <div class="total">（<span>2</span>分） </div>
+                </div>
+                <div class="name" style="padding: 10px;word-wrap:break-word;">学生证遗失后，应当（　　）。</div>
+                <div class="list">
+                    <ul>
+                        <li><label><input type="radio" value="A" class="exam-inp" name="answer"><span class="num">A</span><span class="dian">.</span><span class="txt">自行手写一张替代</span></label></li>
+                        <li><label><input type="radio" value="B" class="exam-inp" name="answer"><span class="num">B</span><span class="dian">.</span><span class="txt">借用他人学生证</span></label></li>
+                        <li><label><input type="radio" value="C" class="exam-inp" name="answer"><span class="num">C</span><span class="dian">.</span><span class="txt">到学工处办理挂失并补办</span></label></li>
+                        <li><label><input type="radio" value="D" class="exam-inp" name="answer"><span class="num">D</span><span class="dian">.</span><span class="txt">到 C 区一站式服务大厅统一办理</span></label></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="courseexamcon-submit">
+                <input class="next_exam" type="button" value="继续下一题">
+                <input class="complete" type="button" value="保存修改" style="display:none">
+            </div>
+        </form>
+    </div>
+
+    <div id="topic-tab-5" class="topic-item" style="display:none" data-expect="AB" data-note="多选最简路径；type=2 会先把本题所有 input 清空再勾">
+        <form method="post" action="javascript:;" onsubmit="return false">
+            <div class="courseexamcon-main" data-type="2">
+                <div class="head">
+                    <div class="num"><span>6</span>.</div>
+                    <div class="type">多选</div>
+                    <div class="total">（<span>4</span>分） </div>
+                </div>
+                <div class="name" style="padding: 10px;word-wrap:break-word;">【多选题】《校园网贷风险告知书》中，建议学生如何对待校园网贷？</div>
+                <div class="list">
+                    <ul>
+                        <li><label><input type="checkbox" value="A" class="exam-inp" name="answer[]"><span class="num">A</span><span class="dian">.</span><span class="txt">树立理性消费观念</span></label></li>
+                        <li><label><input type="checkbox" value="B" class="exam-inp" name="answer[]"><span class="num">B</span><span class="dian">.</span><span class="txt">掌握金融贷款知识，提高防范意识</span></label></li>
+                        <li><label><input type="checkbox" value="C" class="exam-inp" name="answer[]"><span class="num">C</span><span class="dian">.</span><span class="txt">通过多个平台分散借款</span></label></li>
+                        <li><label><input type="checkbox" value="D" class="exam-inp" name="answer[]"><span class="num">D</span><span class="dian">.</span><span class="txt">隐瞒债务避免家人担心</span></label></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="courseexamcon-submit">
+                <input class="next_exam" type="button" value="继续下一题">
+                <input class="complete" type="button" value="保存修改" style="display:none">
+            </div>
+        </form>
+    </div>
+
+    <!-- 回归用：多选的误中是叠加勾选，比单选更隐蔽 —— 日志打的答案是对的，页面上却多勾了一个 -->
+    <div id="topic-tab-6" class="topic-item" style="display:none" data-expect="AD" data-note="返回是「A、D」测顿号分隔；选项 B 正文含大写 D（DNS），复选框不互斥，早先会多勾出 ABD">
+        <form method="post" action="javascript:;" onsubmit="return false">
+            <div class="courseexamcon-main" data-type="2">
+                <div class="head">
+                    <div class="num"><span>7</span>.</div>
+                    <div class="type">多选</div>
+                    <div class="total">（<span>4</span>分） </div>
+                </div>
+                <div class="name" style="padding: 10px;word-wrap:break-word;">【多选题】遇到疑似诈骗电话时，正确的处置方式包括？</div>
+                <div class="list">
+                    <ul>
+                        <li><label><input type="checkbox" value="A" class="exam-inp" name="answer[]"><span class="num">A</span><span class="dian">.</span><span class="txt">立即挂断并核实来电身份</span></label></li>
+                        <li><label><input type="checkbox" value="B" class="exam-inp" name="answer[]"><span class="num">B</span><span class="dian">.</span><span class="txt">按对方指引修改 DNS 设置</span></label></li>
+                        <li><label><input type="checkbox" value="C" class="exam-inp" name="answer[]"><span class="num">C</span><span class="dian">.</span><span class="txt">向对方提供验证码以确认身份</span></label></li>
+                        <li><label><input type="checkbox" value="D" class="exam-inp" name="answer[]"><span class="num">D</span><span class="dian">.</span><span class="txt">向学校保卫处或公安机关报备</span></label></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="courseexamcon-submit">
+                <input class="next_exam" type="button" value="继续下一题">
+                <input class="complete" type="button" value="保存修改" style="display:none">
+            </div>
+        </form>
+    </div>
+
+    <div id="topic-tab-7" class="topic-item" style="display:none" data-expect="B" data-note="判断题，只有 A 正确 / B 错误 两个选项">
+        <form method="post" action="javascript:;" onsubmit="return false">
+            <div class="courseexamcon-main" data-type="3">
+                <div class="head">
+                    <div class="num"><span>8</span>.</div>
+                    <div class="type">判断</div>
+                    <div class="total">（<span>2</span>分） </div>
+                </div>
+                <div class="name" style="padding: 10px;word-wrap:break-word;">学生发现室友浏览不良网站但并未传播，因此该行为没有违反任何规定。</div>
+                <div class="list">
+                    <ul>
+                        <li><label><input type="radio" value="A" class="exam-inp" name="answer"><span class="num">A</span><span class="dian">.</span><span class="txt">正确</span></label></li>
+                        <li><label><input type="radio" value="B" class="exam-inp" name="answer"><span class="num">B</span><span class="dian">.</span><span class="txt">错误</span></label></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="courseexamcon-submit">
+                <input class="next_exam" type="button" value="继续下一题">
+                <input class="complete" type="button" value="保存修改" style="display:none">
+            </div>
+        </form>
+    </div>
+
+    <div id="topic-tab-8" class="topic-item" style="display:none" data-expect="" data-note="模型只回了一段中文、没给字母，extractChoiceAnswer 返回空 → 抛错被 catch → 本题应保持未选">
+        <form method="post" action="javascript:;" onsubmit="return false">
+            <div class="courseexamcon-main" data-type="1">
+                <div class="head">
+                    <div class="num"><span>9</span>.</div>
+                    <div class="type">单选</div>
+                    <div class="total">（<span>2</span>分） </div>
+                </div>
+                <div class="name" style="padding: 10px;word-wrap:break-word;">学生擅自在宿舍饲养宠物，学校可以（　　）。</div>
+                <div class="list">
+                    <ul>
+                        <li><label><input type="radio" value="A" class="exam-inp" name="answer"><span class="num">A</span><span class="dian">.</span><span class="txt">不予处理</span></label></li>
+                        <li><label><input type="radio" value="B" class="exam-inp" name="answer"><span class="num">B</span><span class="dian">.</span><span class="txt">责令限期清理</span></label></li>
+                        <li><label><input type="radio" value="C" class="exam-inp" name="answer"><span class="num">C</span><span class="dian">.</span><span class="txt">直接没收</span></label></li>
+                        <li><label><input type="radio" value="D" class="exam-inp" name="answer"><span class="num">D</span><span class="dian">.</span><span class="txt">通报家长</span></label></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="courseexamcon-submit">
+                <input class="next_exam" type="button" value="继续下一题">
+                <input class="complete" type="button" value="保存修改" style="display:none">
+            </div>
+        </form>
+    </div>
+
+    <!-- data-type 不在 SUPPORTED_TYPES(1/2/3) 里，脚本应直接「未知题型，跳过」，连请求都不该发 -->
+    <div id="topic-tab-9" class="topic-item" style="display:none" data-expect="" data-note="data-type=4，走未知题型分支；server.mjs 的终端里不应出现第 10 题的请求日志">
+        <form method="post" action="javascript:;" onsubmit="return false">
+            <div class="courseexamcon-main" data-type="4">
+                <div class="head">
+                    <div class="num"><span>10</span>.</div>
+                    <div class="type">简答</div>
+                    <div class="total">（<span>10</span>分） </div>
+                </div>
+                <div class="name" style="padding: 10px;word-wrap:break-word;">请结合自身经历，简述你对校园安全的理解。（不少于 100 字）</div>
+                <div class="textarea"><textarea name="answer" placeholder="请作答"></textarea></div>
+            </div>
+            <div class="courseexamcon-submit">
+                <input class="next_exam" type="button" value="继续下一题">
+                <input class="complete" type="button" value="保存修改" style="display:none">
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+/*
+    只复刻平台 exam.js 里与搜题有关的那部分：题号跳转 + 两个按钮的行为。
+    倒计时、交卷、layer 弹窗一概不要，脚本也用不到。
+*/
+(function () {
+    // 平台 successForm 里是 setTimeout(..., 1000) 之后才跳题，这里保持一致。
+    // exam-solver 每题固定 pause(1) + pause(3)，4 秒 > 1 秒，不会抢跑。
+    var SAVE_DELAY = 1000;
+
+    var heads = [].slice.call(document.querySelectorAll('a.topic-head'));
+    var tabs = [].slice.call(document.querySelectorAll('div.topic-item'));
+    var totalCount = heads.length;
+    var index = 0;
+
+    function tabNo(tab) {
+        return parseInt(tab.id.replace('topic-tab-', ''), 10);
+    }
+
+    // 平台 pageJump/pageJump2：藏掉所有题，显示目标题，把 .on 挪过去
+    function jump(idx) {
+        index = idx;
+        tabs.forEach(function (el) { el.style.display = 'none'; });
+        heads.forEach(function (el) { el.classList.remove('on'); });
+        var tab = document.getElementById('topic-tab-' + idx);
+        var head = document.getElementById('topic-head-' + idx);
+        if (tab) tab.style.display = '';
+        if (head) head.classList.add('on');
+    }
+    window.pageJump = jump;
+    window.pageJump2 = jump;
+
+    // 平台 pageNext(true)：跳到第一个还没答（没有 .ok）且序号不小于当前的题
+    window.pageNext = function (force) {
+        var next = index + 1;
+        if (force) {
+            var pending = heads.filter(function (el) { return !el.classList.contains('ok'); });
+            if (!pending.length) return;
+            if (next >= totalCount) next = 0;
+            for (var i = 0; i < pending.length; i++) {
+                var dIndex = parseInt(pending[i].dataset.index || 0, 10);
+                if (dIndex >= next) { next = dIndex; break; }
+            }
+        } else if (next >= totalCount) {
+            next = totalCount - 1;
+        }
+        jump(Math.max(0, next));
+    };
+
+    function markOk(idx) {
+        var head = document.getElementById('topic-head-' + idx);
+        if (head) head.classList.add('ok');
+    }
+
+    tabs.forEach(function (tab) {
+        var no = tabNo(tab);
+        // 继续下一题：平台是提交表单，成功回调里等 1 秒再跳到下一道未答的题
+        var next = tab.querySelector('input.next_exam');
+        if (next) next.addEventListener('click', function () {
+            markOk(no);
+            setTimeout(function () { window.pageNext(true); }, SAVE_DELAY);
+        });
+        // 保存修改：只落库不跳题，跳题由脚本自己点题号完成
+        var save = tab.querySelector('input.complete');
+        if (save) save.addEventListener('click', function () { markOk(no); });
+    });
+
+    /* ---------- 下面都是测试辅助，平台页面上没有 ---------- */
+
+    var branchTip = document.getElementById('mock-branch');
+    var toggleBtn = document.getElementById('mock-toggle');
+    var saveVisible = false;
+
+    /*
+        _nextQuestion 靠 `saveBtn.offsetParent !== null` 二选一：
+        「保存修改」可见就点它再自己点题号跳题，否则点「继续下一题」让页面自己跳。
+        平台上这两种状态分别对应「还有题没答」和「全部答过一遍了」，
+        这里做成一个开关，两条分支都能单独跑一遍。
+    */
+    function applyBranch() {
+        tabs.forEach(function (tab) {
+            var save = tab.querySelector('input.complete');
+            var next = tab.querySelector('input.next_exam');
+            if (save) save.style.display = saveVisible ? '' : 'none';
+            if (next) next.style.display = saveVisible ? 'none' : '';
+        });
+        branchTip.textContent = saveVisible
+            ? '当前分支：「保存修改」可见 —— 脚本点保存后自己点题号跳题'
+            : '当前分支：「继续下一题」可见 —— 脚本点按钮，由页面自己跳题';
+        toggleBtn.textContent = saveVisible ? '切换到「继续下一题」分支' : '切换到「保存修改」分支';
+    }
+    toggleBtn.addEventListener('click', function () {
+        saveVisible = !saveVisible;
+        applyBranch();
+    });
+    applyBranch();
+
+    function picked(tab) {
+        return [].slice.call(tab.querySelectorAll('input.exam-inp'))
+            .filter(function (input) { return input.checked; })
+            .map(function (input) { return input.value; })
+            .join('');
+    }
+
+    function escape(text) {
+        return String(text).replace(/[&<>]/g, function (ch) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[ch];
+        });
+    }
+
+    document.getElementById('mock-verify').addEventListener('click', function () {
+        var rows = tabs.map(function (tab) {
+            var expect = tab.dataset.expect || '';
+            var known = tab.dataset.actual || '';
+            var got = picked(tab);
+            var verdict, cls;
+            if (got === expect) {
+                verdict = '通过';
+                cls = 'r-pass';
+            } else if (known && got === known) {
+                verdict = '已知缺陷（已复现）';
+                cls = 'r-known';
+            } else {
+                verdict = '失败';
+                cls = 'r-fail';
+            }
+            return '<tr class="' + cls + '">'
+                + '<td>' + (tabNo(tab) + 1) + '</td>'
+                + '<td>' + (expect || '（不选）') + '</td>'
+                + '<td>' + (got || '（未选）') + '</td>'
+                + '<td>' + verdict + '</td>'
+                + '<td>' + escape(tab.dataset.note || '') + '</td>'
+                + '</tr>';
+        });
+        document.getElementById('mock-result').innerHTML =
+            '<table><thead><tr><th>题号</th><th>期望</th><th>实际</th><th>结论</th><th>说明</th></tr></thead>'
+            + '<tbody>' + rows.join('') + '</tbody></table>';
+    });
+
+    document.getElementById('mock-reset').addEventListener('click', function () {
+        document.querySelectorAll('input.exam-inp').forEach(function (input) { input.checked = false; });
+        heads.forEach(function (el) { el.classList.remove('ok'); });
+        document.getElementById('mock-result').innerHTML = '';
+        jump(0);
+    });
+})();
+</script>
+</body>
+</html>

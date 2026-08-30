@@ -1,0 +1,12 @@
+{
+    "version": "0.0.1",
+    "configurations": [
+        {
+            "name": "mock-exam",
+            "runtimeExecutable": "node",
+            "runtimeArgs": ["mock/server.mjs"],
+            "port": 8788,
+            "autoPort": true
+        }
+    ]
+}

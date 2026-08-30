@@ -2,7 +2,14 @@ import js from "@eslint/js";
 import globals from "globals";
 
 export default [
-    { ignores: ["dist/**", "node_modules/**"] },
+    {
+        ignores: [
+            "dist/**",
+            "node_modules/**",
+            // 平台自己的脚本，放在根目录只为对照分析，不是本项目源码
+            "video.js",
+        ],
+    },
     js.configs.recommended,
     {
         files: ["src/**/*.js"],
@@ -26,8 +33,8 @@ export default [
         },
     },
     {
-        // 构建辅助脚本跑在 Node 里，不是浏览器环境
-        files: ["scripts/**/*.mjs", "eslint.config.js"],
+        // 构建辅助脚本和本地测试服务跑在 Node 里，不是浏览器环境
+        files: ["scripts/**/*.mjs", "mock/**/*.mjs", "eslint.config.js"],
         languageOptions: {
             ecmaVersion: 2022,
             sourceType: "module",
