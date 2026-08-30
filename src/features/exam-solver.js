@@ -27,6 +27,33 @@ export function extractChoiceAnswer(rawAnswer) {
     return [...new Set(letters)].join("");
 }
 
+/** 平台把选项号单独放在这个元素里，例如 <span class="num">A</span> */
+const OPTION_LETTER_SELECTOR = ".num";
+
+/**
+ * 取一个选项的选项号（A-H），取不到返回空串。
+ *
+ * 不能拿整段文字去 includes(字母)：选项正文里出现大写字母就会误中，
+ * 比如答案是 D、而某个选项写着「修改 DNS 设置」。多选是多勾一个，
+ * 单选更糟 —— radio 同组互斥，靠后的错误选项会把正确的顶掉，直接答错。
+ *
+ * 优先信 input 的 value，平台就是拿它提交的；万一那边是数字 ID，
+ * 再退到专门放选项号的元素，最后才退回取文字开头的字母。
+ */
+function optionLetter(label) {
+    const candidates = [
+        label.querySelector("input")?.value,
+        label.querySelector(OPTION_LETTER_SELECTOR)?.textContent,
+        label.innerText
+    ];
+    for (const raw of candidates) {
+        // 只认干净的单字母开头，"ABC" 这种连写的说明取错了地方，换下一个来源
+        const matched = String(raw || "").trim().toUpperCase().match(/^([A-H])(?![A-Z])/);
+        if (matched) return matched[1];
+    }
+    return "";
+}
+
 export class ExamSolver {
     constructor(ui) {
         this.ui = ui;
@@ -96,12 +123,21 @@ export class ExamSolver {
                 this.ui.updateStatus(`第 ${index + 1} 题答案: ${cleanAnswer}`);
                 Logger.info(`第 ${index + 1} 题答案: ${cleanAnswer}`);
                 const answerList = cleanAnswer.split("");
+                const picked = [];
                 tab.querySelectorAll("label").forEach(label => {
-                    if (answerList.some(item => label.innerText.includes(item))) {
-                        const input = label.querySelector("input");
-                        if (input) input.checked = true;
-                    }
+                    const letter = optionLetter(label);
+                    if (!answerList.includes(letter)) return;
+                    const input = label.querySelector("input");
+                    if (!input) return;
+                    input.checked = true;
+                    picked.push(letter);
                 });
+                // 模型给的选项号页面上不存在时（例如只有四个选项却回了 E），
+                // 以前是静默什么都不选，这里说一声，免得当成没跑到
+                const missing = answerList.filter(letter => !picked.includes(letter));
+                if (missing.length) {
+                    Logger.warn(`第 ${index + 1} 题没找到选项 ${missing.join("")}，实际勾选 ${picked.join("") || "无"}`);
+                }
             }
         } catch (e) {
             Logger.error("搜题出错: " + e.message);
