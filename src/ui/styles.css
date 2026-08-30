@@ -7,6 +7,10 @@
     --sk-surface-raised: #1e231f;
     --sk-surface-strong: #252b26;
     --sk-surface-inset: #101310;
+    /* 唯一的浅色面：只用来给红色品牌图标托底，深色底和红色撞色 */
+    --sk-surface-light: #f3f6f2;
+    /* 配这块浅底用的绿：--sk-accent 是照深色背景调的，落到浅底上淡得几乎看不见 */
+    --sk-accent-on-light: #2f9e6a;
     --sk-border: rgba(218, 231, 221, 0.11);
     --sk-border-strong: rgba(218, 231, 221, 0.2);
     --sk-text: #f2f5f2;
@@ -218,23 +222,23 @@
     gap: 10px;
 }
 
+/*
+    品牌图标是红色枫叶：原来的绿色 --sk-accent 底板红绿撞色，换成深色也压不住红，
+    所以用浅底托一下。浅块压在深色标题栏上自己就有边界，边框去掉，
+    留一道投影让它像贴在面板上而不是挖了个洞。
+    底板就是这个 img 本身，不用再套一层：padding 撑出浅色边，
+    图标 81x86 的竖长比例靠 contain 缩到 26px 见方时不被拉扁。
+*/
 .sk-brand-mark {
-    display: inline-flex;
+    display: block;
     width: 34px;
     height: 34px;
     flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    background: var(--sk-accent);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    padding: 4px;
+    background: var(--sk-surface-light);
     border-radius: 7px;
-    box-shadow: 0 6px 18px rgba(82, 187, 137, 0.18);
-    color: var(--sk-accent-ink);
-    font-family: var(--sk-font-mono);
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    object-fit: contain;
 }
 
 .sk-brand-copy {
@@ -1280,6 +1284,11 @@
 }
 
 /* ================= 最小化按钮 ================= */
+/*
+    整块用浅底，和标题栏那块品牌底板一个色。原来是深色玻璃球，
+    里面再嵌一块浅底托图标就成了黑包白，索性让球本身当底板，图标直接放进按钮。
+    背景不透明之后 backdrop-filter 什么也透不出来，一起去掉，少一个合成层。
+*/
 .sk-min-icon {
     position: fixed;
     top: 18px;
@@ -1291,15 +1300,14 @@
     align-items: center;
     justify-content: center;
     margin: 0;
-    padding: 0;
+    padding: 10px;
     appearance: none;
-    background: var(--sk-bg);
-    border: 1px solid var(--sk-border-strong);
+    background: var(--sk-surface-light);
+    /* 平台页面基本都是白底，浅色球贴上去只能靠这道深边和投影撑出轮廓 */
+    border: 1px solid rgba(9, 33, 22, 0.14);
     border-radius: 10px;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(16px) saturate(1.12);
-    -webkit-backdrop-filter: blur(16px) saturate(1.12);
-    color: var(--sk-accent);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+    color: var(--sk-accent-on-light);
     cursor: pointer;
     opacity: 1;
     visibility: visible;
@@ -1312,10 +1320,18 @@
         box-shadow 0.2s ease;
 }
 
+/* 图标填满按钮内容区，四周留白由按钮的 padding 给；竖长比例靠 contain 不被拉扁 */
+.sk-min-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .sk-min-icon:hover {
     transform: translateY(-2px) scale(1.03);
-    border-color: rgba(121, 215, 168, 0.45);
-    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.48), 0 0 0 3px rgba(121, 215, 168, 0.08);
+    border-color: rgba(222, 55, 55, 0.55);
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28), 0 0 0 3px rgba(241, 191, 191, 0.14);
 }
 
 .sk-min-icon:active {
@@ -1333,14 +1349,6 @@
         visibility 0s linear 0.16s;
 }
 
-.sk-min-mark {
-    color: var(--sk-accent);
-    font-family: var(--sk-font-mono);
-    font-size: 14px;
-    font-weight: 850;
-    line-height: 1;
-}
-
 .sk-min-label {
     position: absolute;
     width: 1px;
@@ -1351,11 +1359,11 @@
     white-space: nowrap;
 }
 
+/* 呼吸灯颜色继承按钮上的 --sk-accent-on-light，共用规则里靠 currentColor 上色 */
 .sk-min-icon i {
     position: absolute;
     right: 7px;
     bottom: 7px;
-    color: var(--sk-accent);
 }
 
 /* ================= 响应式与无障碍 ================= */
@@ -1546,7 +1554,7 @@
         border: 1px solid CanvasText;
     }
 
-    .sk-brand-mark,
+    /* 品牌图标换成图片后不再依赖填充色表意，交回系统配色即可 */
     .sk-btn-primary,
     .sk-log-btn.primary {
         forced-color-adjust: none;

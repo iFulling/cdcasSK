@@ -11,6 +11,7 @@ import {
 } from "../ai/index.js";
 import { renderPanel, renderToolbar } from "./panel-template.js";
 import styles from "./styles.css?inline";
+import brandIcon from "../assets/icon.png";
 
 export class UIManager {
     constructor() {
@@ -63,7 +64,7 @@ export class UIManager {
         icon.type = "button";
         icon.id = "sk-min-icon";
         icon.className = "sk-min-icon hidden";
-        icon.innerHTML = '<span class="sk-min-mark" aria-hidden="true">SK</span><span class="sk-min-label">刷课助手</span><i aria-hidden="true"></i>';
+        icon.innerHTML = `<img src="${brandIcon}" alt=""><span class="sk-min-label">刷课助手</span><i aria-hidden="true"></i>`;
         icon.title = "打开刷课助手";
         icon.setAttribute("aria-label", "打开刷课助手控制台");
         icon.setAttribute("aria-controls", "sk-log-popup");

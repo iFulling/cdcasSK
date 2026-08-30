@@ -8,6 +8,7 @@ import {
     getProvider,
     getProvidersForProtocol
 } from "../ai/index.js";
+import brandIcon from "../assets/icon.png";
 import qrWechat from "../assets/donate-wechat.webp";
 import qrAlipay from "../assets/donate-alipay.webp";
 
@@ -104,10 +105,10 @@ export function renderPanel() {
 <header class="sk-log-header">
     <div class="sk-log-topbar">
         <div class="sk-log-brand">
-            <span class="sk-brand-mark" aria-hidden="true">SK</span>
+            <img class="sk-brand-mark" src="${brandIcon}" alt="">
             <span class="sk-brand-copy">
                 <strong class="sk-log-title">英华刷课助手</strong>
-                <span class="sk-log-subtitle">自动学习控制台</span>
+                <span class="sk-log-subtitle">自动学习考试控制台</span>
             </span>
         </div>
         <div class="sk-log-meta">
@@ -242,7 +243,7 @@ export function renderPanel() {
         <section class="sk-doc-section">
             <h3>常见问题与提示</h3>
             <ol>
-                <li><b>平台适配：</b>网站界面需与 <a target="_blank" rel="noopener noreferrer" class="sk-link" href="https://cdcas.yuruixxkj.com/">成都文理学院在线学堂</a> 相近，学习通、智慧树等平台无法使用。</li>
+                <li><b>平台适配：</b>网站界面需与 <a target="_blank" rel="noopener noreferrer" class="sk-link" href="https://cdcass.taiskeji.com/">成都文理学院在线学堂</a> 相近，学习通、智慧树等平台无法使用。</li>
                 <li><b>视频无法加载：</b>先关闭代理或切换网络；仍无法加载时，通常是课程资源本身异常。</li>
                 <li><b>多端运行：</b>电脑、手机和平板需先安装油猴或脚本猫。脚本未运行时可查看 <a target="_blank" rel="noopener noreferrer" class="sk-link" href="https://docs.scriptcat.org/docs/use/QA/#%E8%84%9A%E6%9C%AC%E4%B8%8D%E7%94%9F%E6%95%88">脚本不生效说明</a>。</li>
                 <li><b>版本冲突：</b>请删除或禁用旧版刷课脚本。</li>
@@ -256,15 +257,15 @@ export function renderPanel() {
             <ol>
                 <li><b>答案校验：</b>AI 生成内容不能保证完全正确，完成后请人工复核。</li>
                 <li><b>接口格式：</b>支持 OpenAI Chat、OpenAI Responses、Claude Messages 与 Gemini generateContent。</li>
-                <li><b>服务商预设：</b>支持火山引擎、OpenAI、Claude、Gemini、Grok、DeepSeek 及兼容中转站，各厂商配置独立保存。</li>
+                <li><b>服务商预设：</b>支持火山方舟、OpenAI、Claude、Gemini、Grok、DeepSeek 及兼容中转站，各厂商配置独立保存。</li>
                 <li><b>模型列表：</b>填写接口地址和 API Key 后，可获取接口提供的模型；不支持列表接口时仍可手动填写。</li>
                 <li><b>连接测试：</b>开始搜题前可先在配置页测试接口。</li>
-                <li><b>火山引擎：</b><a target="_blank" rel="noopener noreferrer" class="sk-link" href="https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666">视频教程</a><span class="sk-link-separator">/</span><a target="_blank" rel="noopener noreferrer" class="sk-link" href="https://kdocs.cn/l/clJtV1RU8GDe">接入点与密钥</a></li>
+                <li><b>火山方舟：</b>有免费次数，因此以火山方舟为例 <a target="_blank" rel="noopener noreferrer" class="sk-link" href="https://kdocs.cn/l/clJtV1RU8GDe">接入点与密钥</a><span class="sk-link-separator">/</span><a target="_blank" rel="noopener noreferrer" class="sk-link" href="https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666">老视频教程</a></li>
             </ol>
         </section>
         <section class="sk-doc-section">
             <h3>交流与支持</h3>
-            <p>视频教程与问题反馈可加入 <a target="_blank" rel="noopener noreferrer" class="sk-link" href="https://qm.qq.com/q/JVXS1pu54O">脚本 QQ 群</a>。</p>
+            <p>视频教程与问题反馈可加入 <a target="_blank" rel="noopener noreferrer" class="sk-link" href="https://qm.qq.com/q/JVXS1pu54O">交流 QQ 群</a>。</p>
         </section>
     </div>
 </section>
