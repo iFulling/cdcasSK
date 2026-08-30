@@ -6,7 +6,7 @@ import {
 
 /**
  * OpenAI Chat Completions 协议。
- * 覆盖面最广：OpenAI、DeepSeek、Grok、火山引擎豆包，以及 sub2api、new-api
+ * 覆盖面最广：OpenAI、DeepSeek、Grok、火山方舟，以及 sub2api、new-api
  * 这类自建中转站基本都兼容这套请求格式。
  */
 export const openaiChat = {

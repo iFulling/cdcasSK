@@ -17,7 +17,7 @@
 - 可选自动填写账号和密码，登录信息保存在用户脚本管理器的本地存储中。
 - 在考试页面读取题目，通过 AI 接口获取答案并自动填入。
 - 支持 OpenAI Chat、OpenAI Responses、Claude Messages 和 Gemini generateContent 接口格式。
-- 内置火山引擎、OpenAI、Claude、Gemini、Grok、DeepSeek 预设，也支持 sub2api、new-api 等自建接口。
+- 内置火山方舟、OpenAI、Claude、Gemini、Grok、DeepSeek 预设，也支持 sub2api、new-api 等自建接口。
 - 提供日志、配置、教程和平台域名管理面板。
 
 ## 平台范围
@@ -67,7 +67,7 @@
 4. 点击“测试接口”确认配置可用并保存。
 5. 进入考试页面，在日志页点击“开始搜题”。
 
-不同服务商的地址、模型和密钥会分别保存，切换服务商不会互相覆盖。火山引擎的接入点和 API Key 获取方式可参考[视频教程](https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666)及[配置文档](https://kdocs.cn/l/clJtV1RU8GDe)。
+不同服务商的地址、模型和密钥会分别保存，切换服务商不会互相覆盖。火山方舟的接入点和 API Key 获取方式可参考[视频教程](https://pan.baidu.com/s/1YMk6Fqv6Bmr1jU0FlQXqNQ?pwd=6666)及[配置文档](https://kdocs.cn/l/clJtV1RU8GDe)。
 
 ## 界面预览
 

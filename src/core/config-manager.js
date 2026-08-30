@@ -44,7 +44,7 @@ export class ConfigManager {
     /**
      * 老配置迁移。
      *
-     * 4.3.1 及更早只支持火山引擎，接入点 ID 和 API Key 都存在扁平键里。
+     * 4.3.1 及更早只支持火山方舟，接入点 ID 和 API Key 都存在扁平键里。
      * 多接口开发版也曾短暂使用扁平的 provider/model/base_url/protocol 键。
      * 这里统一搬到按厂商隔离的配置，迁移后删除旧键，后续启动不会重复处理。
      */
@@ -68,7 +68,7 @@ export class ConfigManager {
         GM_deleteValue("搜题配置.protocol");
         GM_deleteValue("搜题配置.apikey");
     }
-    /** 搜题用的厂商。老用户没存过这项时默认火山引擎 */
+    /** 搜题用的厂商。老用户没存过这项时默认火山方舟 */
     static get aiProvider() {
         return this._normalizeProvider(this.get("搜题配置.provider", DEFAULT_PROVIDER));
     }
@@ -97,8 +97,8 @@ export class ConfigManager {
         this.set(this._aiKey(this.aiProvider, "base_url"), value);
     }
     /**
-     * 模型名称。老版本叫「接入点 ID」（只有火山引擎一家），键名迁移见 migrate()。
-     * 火山引擎填 ep- 开头的接入点 ID，其他厂商填模型名。
+     * 模型名称。老版本叫「接入点 ID」（只有火山方舟一家），键名迁移见 migrate()。
+     * 火山方舟填 ep- 开头的接入点 ID，其他厂商填模型名。
      */
     static get aiModel() {
         return this.get(this._aiKey(this.aiProvider, "model"), "");

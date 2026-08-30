@@ -15,12 +15,12 @@
  */
 export const PROVIDERS = {
     volcengine: {
-        label: "火山引擎（豆包）",
+        label: "火山方舟",
         protocol: "openai-chat",
         baseUrl: "https://ark.cn-beijing.volces.com/api/v3",
         model: "",
         host: "ark.cn-beijing.volces.com",
-        keyLabel: "火山引擎 API Key",
+        keyLabel: "火山方舟 API Key",
         modelHint: "填接入点 ID（ep- 开头）或模型名称，获取方式见教程"
     },
     openai: {
