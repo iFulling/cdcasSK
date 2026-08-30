@@ -20,8 +20,13 @@ src/
 ├── app.js                 主流程状态机（路由判断、刷课循环、考试模式）
 ├── core/                  logger.js / utils.js / config-manager.js
 ├── ui/                    ui-manager.js / panel-template.js / styles.css
-├── features/              video-player.js / ocr-engine.js / captcha-handler.js / exam-solver.js
+├── ai/                    搜题接口层：client.js / providers.js / protocols/（各厂商请求格式）
+├── features/              video-player.js / ocr-engine.js / captcha-handler.js / exam-solver.js / multi-tab-guard.js
 └── assets/                icon.png、收款码 webp（构建时内联成 data URI）
+
+mock/
+├── server.mjs             本地测试服务：挂仿真考试页 + 冒充 OpenAI 兼容接口
+└── user/exam.html         仿真考试页，10 道题覆盖各种题型和返回格式
 
 scripts/
 ├── verify-version.mjs     构建后校验产物版本号与 package.json 一致
@@ -105,9 +110,78 @@ scripts/
 
 - 平台适配：`src/index.js`（网址匹配）、`src/config.js`（DOM 选择器）、`src/app.js`（页面流程）。
 - 验证码识别：`src/features/ocr-engine.js`（模型加载、图片预处理、推理）、`src/features/captcha-handler.js`（触发流程）。
-- 搜题功能：`src/features/exam-solver.js`（火山引擎接口、题目解析、答案填充）。
+- 搜题功能：`src/ai/`（各厂商接口与协议格式）、`src/features/exam-solver.js`（题目解析、选项匹配、答案填充）。
 - 配置界面：`src/ui/panel-template.js`（表单结构）、`src/ui/ui-manager.js`（保存逻辑）、`src/core/config-manager.js`（存储键）。
 - 视频播放：`src/features/video-player.js`（播放与卡顿检测）、`src/app.js` 的 `_videoLoop` / `_playNextVideo`。
+
+## 本地调试
+
+### 测试考试搜题
+
+真考试限次、点一下「保存修改」就是真提交，所以搜题只能在自己造的页面上跑。
+`mock/` 下有一套现成的：
+
+```bash
+node mock/server.mjs
+```
+
+一个进程同时把仿真考试页挂在 <http://localhost:8788/user/exam>，并冒充一个 OpenAI 兼容接口
+按题号返回写死的答案。配置面板里接口地址填 `http://localhost:8788`，Key 随便填。
+10 道题覆盖单选、多选、判断、未知题型，以及模型返回格式的各种花样，跑完点页面上的
+「校验答案」对比期望值。详细说明和加题方法见 `mock/README.md`。
+
+要注意页面必须走那个服务，不能双击 html：`@match` 只有 `*://` 不含 `file://`，
+而且 `_checkUrl()` 要求 `pathname` 全等 `/user/exam`，多一个斜杠或后缀都进不了搜题模式。
+
+### 模拟图形验证码
+
+服务端什么时候下发验证码不可控，等它自然触发没法稳定复现。改 `captcha-handler.js` 或 `ocr-engine.js` 时用下面的办法伪造一次响应。
+
+平台的学时上报是 `$.ajax({dataType: 'json'})` POST 到 `/user/node/study`，只有返回 `{status: false, need_code: 1}` 才会弹出图形验证码。用 jQuery 的 `dataFilter` 改原始响应文本，后续的 `JSON.parse`、`need_code` 分支判断全部走真实代码路径，不必伪造 `readyState` / `status` 这些只读属性。
+
+在课程页控制台粘贴，然后开始播放：
+
+```js
+(function () {
+  var fired = false;
+  window.jQuery.ajaxPrefilter(function (options) {
+    if (fired || String(options.url).indexOf('/user/node/study') === -1) return;
+    fired = true;
+    options.dataFilter = function () {
+      console.log('[mock] 注入 need_code=1');
+      return JSON.stringify({ status: false, need_code: 1 });
+    };
+  });
+  console.log('[mock] 已就位，等待下一次学时上报');
+})();
+```
+
+- 用 `window.jQuery`，不要用 `$` —— DevTools 控制台的 `$` 可能是它自己的 `querySelector` 别名。
+- **必须一次性。** 脚本填完码点「开始播放」会再次 POST 同一个地址，无条件返回 `need_code: 1` 会让弹窗关掉后立刻重开：`sendCode()` 里显式把 `layIndex` 置空，`layer.open` 的 `end` 回调也会置空，`layIndex === null` 那道判断拦不住，结果是无限循环。
+- 触发时机不用抢。上报本身有 10 秒（支持 `sendBeacon` 时 30 秒）的周期定时器，播放开始时 `studyId == 0` 也会立刻发一次。
+- 放行第二个请求正好验证收尾：真实服务端会返回 `status: true`，由于带了 `code`，页面会执行 `playState = 'playing'; player.videoPlay()` 恢复播放。整条链路（弹窗 → 识别 → 填入 → 提交 → 恢复播放）都能观察到，只有服务端对验证码本身的校验结果测不到。
+- 别用 `need_code: 2`。那是点选验证码，渲染进 `#video-captcha` 而不是 layui 层，接的是外部服务 `shixun.kaikangxinxi.com/api/dunclick.json`；脚本的验证码处理器只认 `.layui-layer-content`，看不见它，目前是未覆盖的情况。
+
+### 弹窗里有诱饵元素，别删那行 mousedown
+
+平台在验证码弹窗里放了两组元素，带显眼 ID 的那组是陷阱：
+
+| 元素 | ID | 状态 | 图片地址 |
+| --- | --- | --- | --- |
+| 诱饵输入框 | `#yzCode` | `display:none` | — |
+| 真实输入框 | 无 | 可见 | — |
+| 诱饵图 | `#codeImg` | `opacity:0` | `/service/code` |
+| 真实图 | 无 | 可见 | `/service/code/aa` |
+
+平台脚本里有个 `var tw = ''`，可见输入框的 `mousedown` 会把它改成 `'_'`，最终提交的是 `code + tw`；若填的是隐藏的 `#yzCode`，`tw` 会被清空。也就是说服务端能靠末尾有没有下划线，分辨填的是可见框还是诱饵框。
+
+`captcha-handler.js` 已经处理对了：按 `opacity` 和 `display` 跳过两个诱饵，并显式 `dispatchEvent(new MouseEvent('mousedown'))` 触发 `tw = '_'`。**那行 mousedown 不是可以顺手清理的兼容代码** —— 删掉验证码照样能通过，但请求里少个下划线，服务端侧就有了识别特征。
+
+调试时据此检查三件事：
+
+- OCR 读的是 `/service/code/aa` 那张，别对着 `/service/code` 的内容判断识别对错。
+- 抓第二个请求，确认 `code` 参数末尾是 `_`；不是就说明踩到诱饵路径了。
+- 先单独在地址栏打开一次 `/service/code/aa`。如果它是「请求时才在 session 里生成」的无状态生成器就没问题；如果它依赖服务端已进入待验证状态，伪造场景下可能返回空图或 404，那测的是一张废图，OCR 失败不代表模型有问题。
 
 ## 工作建议
 
