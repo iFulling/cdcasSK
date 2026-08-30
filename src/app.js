@@ -6,6 +6,7 @@ import { UIManager } from "./ui/ui-manager.js";
 import { VideoPlayer } from "./features/video-player.js";
 import { CaptchaHandler } from "./features/captcha-handler.js";
 import { ExamSolver } from "./features/exam-solver.js";
+import { installMultiTabGuard } from "./features/multi-tab-guard.js";
 
 export class App {
     constructor() {
@@ -28,6 +29,8 @@ export class App {
         Logger.info(`刷课助手 v${CONFIG.VERSION} 启动`);
         this._setupPageTimeout();
         this._initVisibilityListener();
+        // 要在页面那个每秒检测下一次执行前装好，装晚了只会多弹一次窗，不影响后续
+        installMultiTabGuard();
         this.captchaHandler.startObserver();
         this._checkUrl();
     }

@@ -57,6 +57,9 @@ export default defineConfig({
                     "GM_addStyle",
                     "GM_registerMenuCommand",
                     "GM_notification",
+                    // src/features/multi-tab-guard.js 要改页面真实的 Storage.prototype，
+                    // 沙箱里的 window 是代理对象，改不到页面自己用的那个
+                    "unsafeWindow",
                 ],
                 require: [
                     "https://registry.npmmirror.com/onnxruntime-web/1.17.0/files/dist/ort.min.js",
