@@ -1,4 +1,4 @@
-import { CONFIG } from "../config.js";
+import { CONFIG, EXAM_PATHS } from "../config.js";
 import { ConfigManager } from "../core/config-manager.js";
 import {
     PROVIDERS,
@@ -90,10 +90,11 @@ function renderAiConfig() {
 export function renderToolbar() {
     const href = window.location.href;
     const pathname = window.location.pathname;
+    const isQuestionPage = EXAM_PATHS.includes(pathname);
     return `
 <button type="button" class="sk-log-btn sk-log-clear">清空日志</button>
 ${href.includes("/login") ? '<button type="button" class="sk-log-btn sk-btn-secondary sk-recaptcha">重新识别验证码</button>' : ''}
-${pathname === "/user/exam" ? '<button type="button" class="sk-log-btn sk-btn-primary sk-exam-start">开始搜题</button><button type="button" class="sk-log-btn sk-btn-danger sk-exam-stop">停止搜题</button>' : ''}
+${isQuestionPage ? '<button type="button" class="sk-log-btn sk-btn-primary sk-exam-start">开始搜题</button><button type="button" class="sk-log-btn sk-btn-danger sk-exam-stop">停止搜题</button>' : ''}
 `;
 }
 
@@ -253,7 +254,7 @@ export function renderPanel() {
             </ol>
         </section>
         <section class="sk-doc-section">
-            <h3>考试搜题</h3>
+            <h3>考试/作业搜题</h3>
             <ol>
                 <li><b>答案校验：</b>AI 生成内容不能保证完全正确，完成后请人工复核。</li>
                 <li><b>接口格式：</b>支持 OpenAI Chat、OpenAI Responses、Claude Messages 与 Gemini generateContent。</li>

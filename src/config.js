@@ -12,6 +12,9 @@ export const CONFIG = {
     }
 };
 
+/** 使用同一套题目 DOM 的答题页面 */
+export const EXAM_PATHS = ["/user/exam", "/user/work"];
+
 // 搜题接口地址不再写在这里：各厂商的默认地址见 src/ai/providers.js
 
 export const SELECTORS = {
@@ -24,5 +27,6 @@ export const SELECTORS = {
     TOPIC_HEAD: ".topic-head",
     TOPIC_TAB_PREFIX: "#topic-tab-",
     EXAM_MAIN: ".courseexamcon-main",
+    EXAM_TYPE: ".head .type",
     EXAM_INTRO_LIST: ".courseexamcon-intro ul li"
 };

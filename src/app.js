@@ -1,4 +1,4 @@
-import { CONFIG, SELECTORS } from "./config.js";
+import { CONFIG, EXAM_PATHS, SELECTORS } from "./config.js";
 import { Logger } from "./core/logger.js";
 import { Utils } from "./core/utils.js";
 import { ConfigManager } from "./core/config-manager.js";
@@ -158,7 +158,7 @@ export class App {
         }
         if (href.includes("/node") || pathname === "/student/course-study") {
             this._startVideoMode();
-        } else if (pathname === "/user/exam") {
+        } else if (EXAM_PATHS.includes(pathname)) {
             this._startExamMode();
         } else if (href.includes("/login")) {
             this._autoFillLoginFields();
@@ -173,7 +173,7 @@ export class App {
             this.ui.clearLog();
             Logger.info("成功检测到路由跳转：已进入个人首页");
         } else {
-            this.ui.updateStatus("请进入课程或考试页面");
+            this.ui.updateStatus("请进入课程、考试或作业页面");
         }
     }
     _autoFillLoginFields() {
@@ -406,9 +406,9 @@ export class App {
         this._navigateToStudyRecord();
     }
     _startExamMode() {
-        this.ui.updateStatus("进入考试搜题模式");
+        this.ui.updateStatus("进入考试/作业搜题模式");
         Logger.warn("答案由 AI 生成，不能保证 100% 正确。分数高低与作者无关，建议搜完后人工复核。");
-        Logger.info("进入考试搜题模式，点击【开始搜题】");
+        Logger.info("进入考试/作业搜题模式，点击【开始搜题】");
         GM_registerMenuCommand("开始搜题", () => this.examSolver.start());
         GM_registerMenuCommand("停止搜题", () => this.examSolver.stop());
         document.addEventListener("sk:exam_start", () => this.examSolver.start());

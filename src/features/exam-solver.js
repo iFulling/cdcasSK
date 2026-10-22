@@ -54,6 +54,22 @@ function optionLetter(label) {
     return "";
 }
 
+/**
+ * 考试页把题型放在 data-type，作业页则放在 .head .type 的中文文本里。
+ * 两种结构都识别，未知题型返回 NaN。
+ */
+function questionType(tab) {
+    const main = tab.querySelector(SELECTORS.EXAM_MAIN);
+    const dataType = Number.parseInt(main?.dataset.type, 10);
+    if (SUPPORTED_TYPES.includes(dataType)) return dataType;
+
+    const label = main?.querySelector(SELECTORS.EXAM_TYPE)?.textContent?.trim() || "";
+    if (label.includes("多选")) return 2;
+    if (label.includes("判断")) return 3;
+    if (label.includes("单选")) return 1;
+    return NaN;
+}
+
 export class ExamSolver {
     constructor(ui) {
         this.ui = ui;
@@ -92,7 +108,7 @@ export class ExamSolver {
             this.ui.updateStatus(`正在搜索第 ${currentIndex + 1} 题...`);
             Logger.info(`正在搜索第 ${currentIndex + 1} 题...`);
             await Utils.pause(1);
-            const type = parseInt(tab.querySelector(SELECTORS.EXAM_MAIN)?.dataset.type);
+            const type = questionType(tab);
             if (SUPPORTED_TYPES.includes(type)) {
                 await this._handleQuestion(tab, type, currentIndex);
             } else {
