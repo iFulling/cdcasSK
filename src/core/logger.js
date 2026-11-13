@@ -19,4 +19,8 @@ export class Logger {
     static warn(msg) {
         this._log('WARN', msg);
     }
+    /** 需要用户立刻注意的操作指引，日志面板里高亮显示 */
+    static notice(msg) {
+        this._log('NOTICE', msg);
+    }
 }

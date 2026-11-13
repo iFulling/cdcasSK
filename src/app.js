@@ -8,6 +8,7 @@ import { VideoPlayer } from "./features/video-player.js";
 import { CaptchaHandler } from "./features/captcha-handler.js";
 import { ExamSolver } from "./features/exam-solver.js";
 import { installMultiTabGuard } from "./features/multi-tab-guard.js";
+import { StudyRecordBrush } from "./features/study-record-brush.js";
 
 export class App {
     constructor() {
@@ -15,7 +16,10 @@ export class App {
         this.videoPlayer = new VideoPlayer(this.ui);
         this.captchaHandler = new CaptchaHandler(this.ui);
         this.examSolver = new ExamSolver(this.ui);
+        this.studyBrush = new StudyRecordBrush(this.ui);
         this.checkTimer = null;
+        this._routeTimer = null;
+        this._noticeHref = null;
         this.isVideoMode = false;
     }
     init() {
@@ -32,6 +36,8 @@ export class App {
         this._initVisibilityListener();
         // 要在页面那个每秒检测下一次执行前装好，装晚了只会多弹一次窗，不影响后续
         installMultiTabGuard();
+        document.addEventListener("sk:brush_start", () => this.studyBrush.start());
+        document.addEventListener("sk:brush_stop", () => this.studyBrush.stop());
         this.captchaHandler.startObserver();
         this._checkUrl();
     }
@@ -168,12 +174,33 @@ export class App {
                 this.captchaHandler.solveLoginCaptcha();
             });
         } else if (href.includes("/user/study_record") || href.includes("course-study-record")) {
-            this._checkStudyRecord();
+            if (detectShell() === SHELL.VUE) {
+                // 新壳没有旧壳那种能逐行读的表格，改用工具栏的「开始刷课」走接口补刷
+                // 刷课途中和全部完成后，站点再触发路由回调都不要覆盖当前提示
+                if (!this.studyBrush.running && !this.studyBrush.finished) {
+                    this.ui.updateStatus("已进入学习成绩页面");
+                    // 同一地址的重复路由回调不再重复提示
+                    if (this._noticeHref !== href) {
+                        this._noticeHref = href;
+                        Logger.notice("请点击控制台顶部的「开始刷课」按钮");
+                    }
+                }
+            } else {
+                this._checkStudyRecord();
+            }
         } else if (pathname === "/student/home") {
             this.ui.updateStatus("已进入个人首页");
             this.ui.clearLog();
             Logger.info("成功检测到路由跳转：已进入个人首页");
             Logger.info("请进入课程页面");
+        } else if (pathname.startsWith("/student/course-detail/")) {
+            // 新壳的课程详情页只是个目录，脚本在这里读不到播放器和学习记录
+            // 同一地址的重复路由回调不再重复提示
+            if (this._noticeHref !== href) {
+                this._noticeHref = href;
+                this.ui.updateStatus("请进入学习成绩页面");
+                Logger.notice("请进入 \"学习成绩\" 页面");
+            }
         } else {
             this.ui.updateStatus("请进入课程、考试或作业页面");
         }
@@ -256,7 +283,10 @@ export class App {
     }
     _handleRouteChange() {
         this.ui.updateToolbar();
-        this._checkUrl();
+        // 站点跳转前会先对当前页 replaceState 一次，紧接着才 pushState 到目标页。
+        // 推迟一个宏任务把同一轮导航的多次回调合并成一次，避免在中间态重复判定。
+        clearTimeout(this._routeTimer);
+        this._routeTimer = setTimeout(() => this._checkUrl(), 0);
     }
     _getPageInfo() {
         const totalEl = document.querySelector(".pagebar-bbs .total") || document.querySelector(".total");

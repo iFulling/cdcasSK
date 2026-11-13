@@ -397,6 +397,12 @@
     transform: none;
 }
 
+/* 刷课按钮是互斥开关，禁用态表示「当前不能点」，不是「正在处理」 */
+.sk-brush-start:disabled,
+.sk-brush-stop:disabled {
+    cursor: not-allowed;
+}
+
 .sk-log-btn[aria-busy="true"] {
     padding-right: 30px;
 }
@@ -680,6 +686,15 @@
 
 .sk-log-item.warn { color: var(--sk-warn); }
 .sk-log-item.error { color: var(--sk-danger); }
+
+/* 操作指引类提示：换主题描边色 + 加粗 + 左侧竖条，比普通日志显眼一档 */
+.sk-log-item.notice {
+    color: var(--sk-accent);
+    font-weight: 600;
+    padding-left: 24px;
+    background: color-mix(in srgb, var(--sk-accent) 9%, transparent);
+    box-shadow: inset 2px 0 0 var(--sk-accent);
+}
 
 @keyframes sk-log-enter {
     from { opacity: 0; transform: translateX(-5px); }

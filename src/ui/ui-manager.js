@@ -21,6 +21,8 @@ export class UIManager {
         this.logContent = null;
         this.logCountEl = null;
         this.consoleStatus = null;
+        // 刷课按钮互斥状态的唯一来源，工具栏重建后靠它恢复
+        this.brushRunning = false;
         this._isDragging = false;
         this._dragOffset = { x: 0, y: 0 };
         this._statusAnimationTimer = null;
@@ -100,6 +102,18 @@ export class UIManager {
         if (examStopBtn) {
             examStopBtn.addEventListener("click", () => {
                 document.dispatchEvent(new CustomEvent("sk:exam_stop"));
+            });
+        }
+        const brushStartBtn = popup.querySelector(".sk-brush-start");
+        const brushStopBtn = popup.querySelector(".sk-brush-stop");
+        if (brushStartBtn) {
+            brushStartBtn.addEventListener("click", () => {
+                document.dispatchEvent(new CustomEvent("sk:brush_start"));
+            });
+        }
+        if (brushStopBtn) {
+            brushStopBtn.addEventListener("click", () => {
+                document.dispatchEvent(new CustomEvent("sk:brush_stop"));
             });
         }
 
@@ -516,6 +530,13 @@ export class UIManager {
         });
         if (focus) button.focus();
     }
+    setBrushRunning(running) {
+        this.brushRunning = running;
+        const startBtn = this.logPopup?.querySelector(".sk-brush-start");
+        const stopBtn = this.logPopup?.querySelector(".sk-brush-stop");
+        if (startBtn) startBtn.disabled = running;
+        if (stopBtn) stopBtn.disabled = !running;
+    }
     updateToolbar() {
         const toolbar = this.logPopup?.querySelector(".sk-log-toolbar");
         if (!toolbar) return;
@@ -534,6 +555,16 @@ export class UIManager {
         if (examStopBtn) {
             examStopBtn.onclick = () => document.dispatchEvent(new CustomEvent("sk:exam_stop"));
         }
+        const brushStartBtn = toolbar.querySelector(".sk-brush-start");
+        const brushStopBtn = toolbar.querySelector(".sk-brush-stop");
+        if (brushStartBtn) {
+            brushStartBtn.onclick = () => document.dispatchEvent(new CustomEvent("sk:brush_start"));
+        }
+        if (brushStopBtn) {
+            brushStopBtn.onclick = () => document.dispatchEvent(new CustomEvent("sk:brush_stop"));
+        }
+        // 重建工具栏后恢复刷课按钮的互斥状态
+        this.setBrushRunning(this.brushRunning);
     }
     _onDragStart(e) {
         if (e.button !== 0 || e.target.closest("button, a, input, select, textarea, label")) return;
