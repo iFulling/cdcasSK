@@ -1250,6 +1250,8 @@
     gap: 12px;
     max-width: 382px;
     margin: 0 auto;
+    /* 两张码比例不同时各按自己高度收边，不把矮的那张拉高留空 */
+    align-items: start;
 }
 
 .sk-donate-item {
@@ -1267,12 +1269,15 @@
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
 }
 
+/*
+    不锁定宽高比、不裁切，图片按自身比例铺满卡片宽度。
+    两张源图都是 2:3，卡片自然等高；曾经写死 aspect-ratio: 5/7 + object-fit: cover，
+    源图换成方形时左右各被切掉约 14%，正好切在文案和边框上。
+*/
 .sk-donate-item img {
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 5 / 7;
-    object-fit: cover;
     border-radius: 6px;
 }
 

@@ -5,6 +5,13 @@ node_modules/
 .idea/
 *.iml
 
+# AI 工具本地目录（会话记录、记忆、缓存），不进仓库
+.workbuddy/
+.codebuddy/
+# .claude 里的 launch.json 是 mock 考试的启动配置，保留；其余会话/缓存文件忽略
+/.claude/*
+!/.claude/launch.json
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
