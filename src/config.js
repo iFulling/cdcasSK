@@ -2,7 +2,7 @@ export const CONFIG = {
     // 构建期由 vite.config.ts 从 package.json 注入，不要手改
     VERSION: __SCRIPT_VERSION__,
     DEFAULT: {
-        URLS: "yuruixxkj.com|rurenkj.com|suwankj.com|chengxikej.com|haiqikeji.com|taiskeji.com",
+        URLS: "yuruixxkj.com|rurenkj.com|suwankj.com|chengxikej.com|haiqikeji.com|taiskeji.com|leykeji.com|qintaiyfkj.com|jiuzhouzxkj.com",
         TIMEOUT_MINUTES: 40
     },
     THRESHOLDS: {

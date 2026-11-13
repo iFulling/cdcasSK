@@ -1,5 +1,6 @@
 import { CONFIG, EXAM_PATHS } from "../config.js";
 import { ConfigManager } from "../core/config-manager.js";
+import { SHELL, detectShell } from "../core/shell.js";
 import {
     PROVIDERS,
     PROTOCOLS,
@@ -86,11 +87,11 @@ function renderAiConfig() {
     </section>`;
 }
 
-/** 日志工具栏。登录页按 href 判断，避免 query 导致漏判。 */
+/** 日志工具栏。登录页按 href 判断，避免 query 导致漏判；新壳没有搜题能力，不给按钮。 */
 export function renderToolbar() {
     const href = window.location.href;
     const pathname = window.location.pathname;
-    const isQuestionPage = EXAM_PATHS.includes(pathname);
+    const isQuestionPage = EXAM_PATHS.includes(pathname) && detectShell() !== SHELL.VUE;
     return `
 <button type="button" class="sk-log-btn sk-log-clear">清空日志</button>
 ${href.includes("/login") ? '<button type="button" class="sk-log-btn sk-btn-secondary sk-recaptcha">重新识别验证码</button>' : ''}

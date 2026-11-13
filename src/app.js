@@ -2,6 +2,7 @@ import { CONFIG, EXAM_PATHS, SELECTORS } from "./config.js";
 import { Logger } from "./core/logger.js";
 import { Utils } from "./core/utils.js";
 import { ConfigManager } from "./core/config-manager.js";
+import { SHELL, detectShell } from "./core/shell.js";
 import { UIManager } from "./ui/ui-manager.js";
 import { VideoPlayer } from "./features/video-player.js";
 import { CaptchaHandler } from "./features/captcha-handler.js";
@@ -172,6 +173,7 @@ export class App {
             this.ui.updateStatus("已进入个人首页");
             this.ui.clearLog();
             Logger.info("成功检测到路由跳转：已进入个人首页");
+            Logger.info("请进入课程页面");
         } else {
             this.ui.updateStatus("请进入课程、考试或作业页面");
         }
@@ -179,41 +181,12 @@ export class App {
     _autoFillLoginFields() {
         if (!ConfigManager.autoFillAccount) return;
         if (this._loginFillTimer) return;
-        const href = window.location.href;
-        const isHaiqi = href.includes("haiqikeji");
-        const fill = (selector, value) => {
-            const el = document.querySelector(selector);
-            if (!el || !value) return false;
-            el.focus();
-            const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-            if (setter) {
-                setter.call(el, value);
-            } else {
-                el.value = value;
-            }
-            el.dispatchEvent(new InputEvent("input", {
-                bubbles: true,
-                composed: true,
-                data: value,
-                inputType: "insertText"
-            }));
-            el.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
-            el.dispatchEvent(new Event("blur", { bubbles: true, composed: true }));
-            return true;
-        };
         const tryFill = () => {
             if (!ConfigManager.autoFillAccount) return true;
-            if (isHaiqi) {
-                const inputs = document.querySelectorAll('input.el-input__inner');
-                const userInput = Array.from(inputs).find(el => el.type === 'text' || (el.placeholder || '').includes('学号'));
-                const passInput = Array.from(inputs).find(el => el.type === 'password' || (el.placeholder || '').includes('密码'));
-                const ok1 = userInput && ConfigManager.loginAccount ? (fill('input.el-input__inner[type="text"]', ConfigManager.loginAccount) || fill('input[placeholder="请输入学号"]', ConfigManager.loginAccount)) : false;
-                const ok2 = passInput && ConfigManager.loginPassword ? (fill('input.el-input__inner[type="password"]', ConfigManager.loginPassword) || fill('input[placeholder="请输入密码"]', ConfigManager.loginPassword)) : false;
-                return !!(ok1 && ok2);
-            }
-            const ok1 = !!fill('#username', ConfigManager.loginAccount);
-            const ok2 = !!fill('#password', ConfigManager.loginPassword);
-            return ok1 && ok2;
+            const shell = detectShell();
+            // 认不出壳就不填：填错输入框比不填更麻烦，交给轮询等壳挂载完
+            if (shell === SHELL.UNKNOWN) return false;
+            return this._fillLoginFields(shell);
         };
         let attempts = 0;
         const maxAttempts = 40;
@@ -226,6 +199,46 @@ export class App {
         }, 250);
         this._loginFillTimer = interval;
         tryFill();
+    }
+    /** 按壳取登录输入框，两栏都写上才算完成 */
+    _fillLoginFields(shell) {
+        const account = ConfigManager.loginAccount;
+        const password = ConfigManager.loginPassword;
+        if (!account || !password) return true;
+
+        let userInput;
+        let passInput;
+        if (shell === SHELL.VUE) {
+            const inputs = Array.from(document.querySelectorAll("input.el-input__inner"));
+            userInput = inputs.find(el => el.type === "text");
+            passInput = inputs.find(el => el.type === "password");
+        } else {
+            userInput = document.querySelector("#username");
+            passInput = document.querySelector("#password");
+        }
+        if (!userInput || !passInput) return false;
+
+        this._setInputValue(userInput, account);
+        this._setInputValue(passInput, password);
+        return true;
+    }
+    /** 绕过框架的受控输入：原生 setter 写值，再补 input/change/blur 事件 */
+    _setInputValue(el, value) {
+        el.focus();
+        const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+        if (setter) {
+            setter.call(el, value);
+        } else {
+            el.value = value;
+        }
+        el.dispatchEvent(new InputEvent("input", {
+            bubbles: true,
+            composed: true,
+            data: value,
+            inputType: "insertText"
+        }));
+        el.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+        el.dispatchEvent(new Event("blur", { bubbles: true, composed: true }));
     }
     _initRouteListener() {
         const self = this;
@@ -406,6 +419,12 @@ export class App {
         this._navigateToStudyRecord();
     }
     _startExamMode() {
+        // 新壳目前没有做考试/作业的题目解析，直接提示，不注册菜单和事件，避免误触发
+        if (detectShell() === SHELL.VUE) {
+            this.ui.updateStatus("该网站不支持考试和答题");
+            Logger.warn("该网站不支持考试和答题");
+            return;
+        }
         this.ui.updateStatus("进入考试/作业搜题模式");
         Logger.warn("答案由 AI 生成，不能保证 100% 正确。分数高低与作者无关，建议搜完后人工复核。");
         Logger.info("进入考试/作业搜题模式，点击【开始搜题】");
@@ -514,55 +533,63 @@ export class App {
     }
     _getCurrentVideoIndex(links) {
         const items = Array.from(links || []);
-        const href = window.location.href;
-        const isHaiqi = href.includes("haiqikeji");
+        const shell = detectShell();
 
-        if (isHaiqi) {
-            const activeIndex = items.findIndex(link => link.classList?.contains("active") || link.querySelector?.(".active"));
-            if (activeIndex !== -1) return activeIndex;
+        if (shell === SHELL.VUE) return this._findActiveIndexVue(items);
+        if (shell === SHELL.LEGACY) return this._findActiveIndexLegacy(items);
 
-            const activeChapter = document.querySelector(".section-item.active");
-            if (activeChapter) {
-                const idx = items.findIndex(link => link === activeChapter || link.contains?.(activeChapter) || activeChapter.contains?.(link));
-                if (idx !== -1) return idx;
-            }
+        Logger.warn("无法识别站点，只按通用激活标记定位当前小节");
+        return this._findActiveIndexByMarker(items);
+    }
+    /** 新壳：侧栏组件上的 active 类，其次按 h1 标题比对 */
+    _findActiveIndexVue(items) {
+        const activeIndex = items.findIndex(link => link.classList?.contains("active") || link.querySelector?.(".active"));
+        if (activeIndex !== -1) return activeIndex;
 
-            const currentTitle = document.querySelector("h1")?.innerText?.trim();
-            if (currentTitle) {
-                for (let i = 0; i < items.length; i++) {
-                    const link = items[i];
-                    const sectionTitle = link.querySelector(".section-title")?.innerText?.trim() || link.title?.trim() || link.innerText?.trim();
-                    if (!sectionTitle) continue;
-                    if (currentTitle === sectionTitle) return i;
-                    if (currentTitle.includes(sectionTitle) || sectionTitle.includes(currentTitle)) return i;
-                }
-            }
-            return -1;
+        const activeChapter = document.querySelector(".section-item.active");
+        if (activeChapter) {
+            const idx = items.findIndex(link => link === activeChapter || link.contains?.(activeChapter) || activeChapter.contains?.(link));
+            if (idx !== -1) return idx;
         }
-
+        return this._matchIndexByTitle(items);
+    }
+    /** 旧壳：a.on 标记，其次按 URL 的 nodeId 比对，最后按标题 */
+    _findActiveIndexLegacy(items) {
         const currentUrl = new URL(window.location.href);
+        const currentNodeId = currentUrl.searchParams.get("nodeId");
+
         for (let i = 0; i < items.length; i++) {
             const link = items[i];
             const activeLink = link.querySelector("a.on") || (link.matches && link.matches("a.on"));
             if (activeLink) return i;
 
+            if (!currentNodeId) continue;
             try {
                 const linkUrl = new URL(link.href, window.location.origin);
-                const linkNodeId = linkUrl.searchParams.get("nodeId");
-                const currentNodeId = currentUrl.searchParams.get("nodeId");
-                if (linkNodeId && currentNodeId && linkNodeId === currentNodeId) return i;
+                if (linkUrl.searchParams.get("nodeId") === currentNodeId) return i;
             } catch { }
         }
-
+        return this._matchIndexByTitle(items);
+    }
+    /** 认不出壳时只能靠两套壳共用的激活标记，找不到就返回 -1，不猜 */
+    _findActiveIndexByMarker(items) {
+        const marker = document.querySelector(".section-item.active, a.on");
+        if (!marker) return -1;
+        return items.findIndex(link =>
+            link === marker || link.contains?.(marker) || marker.contains?.(link)
+        );
+    }
+    /** 侧栏条目标题和页面 h1 互相包含，两套壳的标题结构一样 */
+    _matchIndexByTitle(items) {
         const currentTitle = document.querySelector("h1")?.innerText?.trim();
-        if (currentTitle) {
-            for (let i = 0; i < items.length; i++) {
-                const link = items[i];
-                const sectionTitle = link.querySelector(".section-title")?.innerText?.trim() || link.title?.trim() || link.innerText?.trim();
-                if (!sectionTitle) continue;
-                if (currentTitle === sectionTitle) return i;
-                if (currentTitle.includes(sectionTitle) || sectionTitle.includes(currentTitle)) return i;
-            }
+        if (!currentTitle) return -1;
+
+        for (let i = 0; i < items.length; i++) {
+            const link = items[i];
+            const sectionTitle = link.querySelector(".section-title")?.innerText?.trim() || link.title?.trim() || link.innerText?.trim();
+            if (!sectionTitle) continue;
+            if (currentTitle === sectionTitle) return i;
+            if (currentTitle.includes(sectionTitle) || sectionTitle.includes(currentTitle)) return i;
         }
         return -1;
     }

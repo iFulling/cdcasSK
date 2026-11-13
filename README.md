@@ -22,10 +22,14 @@
 
 ## 平台范围
 
-项目按页面结构将平台分为两类：
+项目按页面结构把平台分成两套壳，脚本自动识别，不看域名：
 
-- **英华（旧 UI）**：包括 `yuruixxkj.com`、`rurenkj.com`、`suwankj.com`、`chengxikej.com` 等同类站点。
-- **海旗（新 UI）**：`haiqikeji.com` 相关站点。
+- **旧壳（英华）**：老的 jQuery + yeeui 页面。包括 `yuruixxkj.com`、`rurenkj.com`、`suwankj.com`、`chengxikej.com`、`taiskeji.com`、`qintaiyfkj.com`、`jiuzhouzxkj.com` 等同类站点。
+- **新壳**：Vue 3 单页应用。包括 `haiqikeji.com`、`leykeji.com` 等站点。
+
+同一所学校可能同时有新旧两套入口（例如成都文理的 `cdcass.taiskeji.com` 是旧壳、`cdcas.leykeji.com` 是新壳），两套都能识别，不需要分别选。
+
+新壳目前只支持视频刷课，考试和作业搜题没有适配，进入考试页会提示「该网站不支持考试和答题」。
 
 进入任一已支持平台后，可以在“配置 → 平台范围”中添加同类学校站点的域名。自定义域名只扩大脚本启用范围，不代表脚本能够适配不同结构的平台；学习通、智慧树等平台目前不支持。
 

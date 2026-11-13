@@ -38,7 +38,7 @@ let installed = false;
 let notified = false;
 
 /**
- * 每次命中都重新读一遍 DOM，这样海旗那种前端路由切换小节后不用重新装钩子。
+ * 每次命中都重新读一遍 DOM，这样新壳那种前端路由切换小节后不用重新装钩子。
  * 命中频率是每秒一次，开销可以忽略。
  */
 function currentNodeId() {

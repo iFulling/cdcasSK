@@ -3,7 +3,9 @@ import { App } from "./app.js";
 
 function matchUrl() {
     let iconLink = document.querySelector("link[rel='shortcut icon']");
-    if (iconLink && /yuruixxkj|yinghua|canghui|gyxy|ruren|zjxkeji|yuncanjykeji|haiqikeji/.test(iconLink.getAttribute("href"))) {
+    // 有些壳的 favicon 挂在带平台名的路径下（如 s2.yinghuaonline.com/…），拿它当第二道特征。
+    // 这里只判断「是不是本站」，不区分新旧壳 —— 壳的判定在 core/shell.js。
+    if (iconLink && /yuruixxkj|yinghua|canghui|gyxy|ruren|zjxkeji|yuncanjykeji|haiqikeji|taiskeji|leykeji|qintaiyfkj|jiuzhouzxkj/.test(iconLink.getAttribute("href"))) {
         return true;
     }
     const urls = ConfigManager.urls;

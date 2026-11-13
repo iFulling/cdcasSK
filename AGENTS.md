@@ -97,18 +97,23 @@ scripts/
   - `优化配置面板`
   - `新增平台适配`
 
-## 平台分类约定
+## 外壳分类约定
 
-项目中的网址大致分为两类：
+平台按**页面结构**分为两套壳，判定入口是 `src/core/shell.js` 的 `detectShell()`。判据只看 DOM，不看域名。
 
-- **新 UI**：`haiqikeji` 相关网址，也可称为 **海旗**。
-- **旧 UI**：除 `haiqikeji` 以外的所有网址，也可称为 **英华**。
+- **新壳**：Vue 3 单页应用，根节点带 `#app.__vue_app__`。`haiqikeji.com`、`leykeji.com` 都属于这一套。
+- **旧壳**：jQuery + yeeui 老框架，页面会引 `/yeeui/yee.js`。`yuruixxkj.com`、`rurenkj.com`、`suwankj.com`、`chengxikej.com`、`taiskeji.com`、`qintaiyfkj.com`、`jiuzhouzxkj.com` 都属于这一套。旧壳也叫 **英华**。
+- **认不出**：返回 `unknown`，脚本只按 `.section-item.active` / `a.on` 这类通用激活标记干活，不猜是哪套壳。
 
-后续在分析、修改或讨论平台适配时，统一按这个分类来称呼，避免混淆。
+新壳没有做考试/作业的题目解析，只支持视频刷课。落在 `EXAM_PATHS` 上时 `_startExamMode()` 直接提示「该网站不支持考试和答题」并返回，不注册菜单和事件；`renderToolbar()` 也不会渲染「开始搜题」按钮。
+
+**不要用域名判断新旧**。同一所学校可能同时挂在新旧两套壳上（成都文理就有 `cdcass.taiskeji.com` 旧壳和 `cdcas.leykeji.com` 新壳），域名后缀（`haiqikeji` / `leykeji` / `qintaiyfkj` / `jiuzhouzxkj`）也随时会换。以前用 `href.includes("haiqikeji")` 判断新壳的写法已经废弃。
+
+`matchUrl()` 里的域名列表和 favicon 关键词只解决「是不是本站、要不要注入」，和壳的判定是两件事，改一个别顺手改另一个。
 
 ## 常见修改位置
 
-- 平台适配：`src/index.js`（网址匹配）、`src/config.js`（DOM 选择器）、`src/app.js`（页面流程）。
+- 平台适配：`src/core/shell.js`（新壳/旧壳判定）、`src/index.js`（网址匹配）、`src/config.js`（DOM 选择器）、`src/app.js`（页面流程）。
 - 验证码识别：`src/features/ocr-engine.js`（模型加载、图片预处理、推理）、`src/features/captcha-handler.js`（触发流程）。
 - 搜题功能：`src/ai/`（各厂商接口与协议格式）、`src/features/exam-solver.js`（题目解析、选项匹配、答案填充）。
 - 配置界面：`src/ui/panel-template.js`（表单结构）、`src/ui/ui-manager.js`（保存逻辑）、`src/core/config-manager.js`（存储键）。
